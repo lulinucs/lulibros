@@ -38,7 +38,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} alt="Logo" className="logo" /> 
-        <p>A solução definitiva pros problemas do Versa</p> 
+    
         <div className="mobile-menu-icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           <div className="bar"></div>
           <div className="bar"></div>

@@ -20,8 +20,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/lulifeira')
   .then(() => {
     console.log('Conectado ao MongoDB local');
     const server = https.createServer({
-      key: fs.readFileSync('./sistemafeira/lulifeirafront/.cert/key.pem'),
-      cert: fs.readFileSync('./sistemafeira/lulifeirafront/.cert/cert.pem')
+      key: fs.readFileSync('./frontend/.cert/key.pem'),
+      cert: fs.readFileSync('./frontend/.cert/cert.pem')
     }, app);
     server.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
