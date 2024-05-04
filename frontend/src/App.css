@@ -1,0 +1,115 @@
+/* App.css */
+
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.App-header {
+  background-color: #007bff;
+  color: white;
+  padding: 20px;
+  border-bottom: 2px solid #0056b3;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 36px;
+}
+
+.App-header p {
+  margin: 10px 0 0;
+  font-size: 18px;
+}
+
+.mobile-menu-icon {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.bar {
+  width: 30px;
+  height: 3px;
+  background-color: #fff;
+  margin: 6px 0;
+  transition: 0.4s;
+}
+
+.menu {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.menu button {
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+.menu button:not(.active) {
+  color: #007bff; 
+}
+
+.menu button.active {
+  background-color: #0056b3;
+}
+
+.main-content {
+  flex: 1;
+}
+
+footer {
+  margin-top: auto;
+  padding: 10px 0;
+  background-color: #f8f9fa;
+  font-size: 14px;
+  color: #666;
+}
+
+.logo {
+  width: 256px;
+  height: auto; 
+}
+
+@media (max-width: 768px) {
+  .menu {
+    display: none;
+  }
+
+  .menu.open {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background-color: #ffffffd8;
+    z-index: 999;
+    border-radius: 10px;
+  }
+
+  .mobile-menu-icon {
+    display: block;
+  }
+
+}
+
+@media only screen and (max-width: 600px) {
+  .hide-mobile {
+    display: none;
+  }
+}

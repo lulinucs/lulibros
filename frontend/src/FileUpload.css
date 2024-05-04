@@ -1,0 +1,92 @@
+.FileUploadContainer {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .FileUploadContainer h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .FileUploadContainer .input-group {
+    margin-bottom: 20px;
+  }
+  
+
+  
+  .FileUploadContainer .file-input-label {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .FileUploadContainer .file-input-label:hover {
+    background-color: #45a049;
+  }
+  
+  .FileUploadContainer .upload-type-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .FileUploadContainer .upload-type-label input[type="radio"] {
+    display: none;
+  }
+  
+  .FileUploadContainer .upload-type-label input[type="radio"] + span {
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+  }
+  
+  .FileUploadContainer .upload-type-label input[type="radio"] + span:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #4CAF50;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+  
+  .FileUploadContainer .upload-type-label input[type="radio"]:checked + span:before {
+    background-color: #4CAF50;
+  }
+  
+  .FileUploadContainer .upload-type-label input[type="radio"] + span + span {
+    margin-left: 10px;
+  }
+  
+  .FileUploadContainer .upload-button {
+    padding: 12px 24px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .FileUploadContainer .upload-button:hover {
+    background-color: #45a049;
+  }
+  
+  .FileUploadContainer .upload-message {
+    margin-top: 10px;
+    color: #333;
+  }
+  

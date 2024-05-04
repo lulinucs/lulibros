@@ -1,0 +1,252 @@
+/* ListaVendas.css */
+
+/* ListaVendas.css */
+
+.ListaVendas {
+  max-width: 90%;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+.vendas-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.venda-card {
+  width: calc(33.33% - 20px); /* Definindo 3 colunas com espaçamento entre elas */
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.card-content {
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  transition: transform 0.3s ease;
+}
+
+.card-content:hover {
+  transform: translateY(-5px);
+}
+
+.venda:hover {
+  transform: translateY(-5px);
+}
+
+.timestamp {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.valor-final {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.livro-card {
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.isbn {
+  font-size: 12px;
+  font-weight: bold;
+  color: #666;
+  margin-right: 10px;
+}
+
+.titulo {
+  flex-grow: 1; /* Ocupa o máximo de espaço disponível */
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.valor {
+  color: #009732; /* Verde */
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.quantidade {
+  font-size: 24px;
+  font-weight: bold;
+  margin-right: 25px;
+}
+
+
+/* Modal CSS */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+}
+
+.total-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-label {
+  margin-left: 15px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.valor-total-modal {
+  margin-right: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #009732; /* Verde */
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 24px;
+  color: #aaa;
+}
+
+.close:hover {
+  color: #666;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+/* CSS atualizado */
+
+.card {
+  background-color: #f9f9f9;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  width: 10; 
+}
+
+.info-column {
+  padding-right: 20px;
+}
+
+.info-column p {
+  margin-bottom: 10px;
+}
+
+.card input{
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+}
+
+.modal-content .fechar-button,
+.modal-content .estornar-button,
+.modal-content .adicionar-cliente-button {
+  background-color: transparent; /* Define a cor de fundo como transparente */
+  color: #000; /* Define a cor do texto */
+  border: 1px solid #000; /* Adiciona uma borda */
+  padding: 14px 20px;
+  margin: 8px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  transition: background-color 0.3s; /* Adiciona uma transição suave para a mudança de cor de fundo */
+}
+
+.modal-content .fechar-button:hover{
+  background-color: #ff5c5c; /* Vermelho para fechar */
+  color: #fff; /* Texto branco */
+}
+
+.modal-content .estornar-button:hover {
+  background-color: #ffd700; /* Amarelo para estornar venda */
+  color: #fff; /* Texto branco */
+}
+
+.modal-content .adicionar-cliente-button:hover {
+  background-color: #009732; /* Amarelo para estornar venda */
+  color: #fff; /* Texto branco */
+}
+
+.data-seletor {
+  margin-bottom: 20px;
+}
+
+.data-seletor label {
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.data-seletor input[type="date"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s;
+  font-size: 16px;
+}
+
+.data-seletor input[type="date"]:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.date {
+  margin-right: 0px;
+}

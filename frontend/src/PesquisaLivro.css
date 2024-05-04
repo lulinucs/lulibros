@@ -1,0 +1,94 @@
+.PesquisaLivro {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.input-group .input-with-button {
+  display: flex;
+  align-items: center;
+}
+
+.input-group input {
+  width: calc(100% - 40px);
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.barcode-button {
+  width: 50px;
+  height: 50px;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.barcode-button svg {
+  color: #fff;
+}
+
+.register-sale-button {
+  width: 100%;
+  height: 50px;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-sale-button svg {
+  margin-right: 5px;
+}
+
+.livro-detalhes {
+  margin-top: 20px;
+}
+
+.erro {
+  color: red;
+}
+
+.disabled-button {
+  background-color: #ccc; /* Cor de fundo cinza */
+  color: #666; /* Cor do texto cinza */
+  cursor: not-allowed; /* Cursor de não permitido */
+}
+
+.discount-input {
+  width: 40px; /* Defina o tamanho do input */
+  padding: 8px; /* Adicione algum espaço interno */
+  border: none; /* Remova a borda */
+  border-radius: 5px; /* Adicione cantos arredondados */
+  text-align: center; /* Centralize o texto */
+  font-size: 16px; /* Ajuste o tamanho da fonte */
+  background-color: #f2f2f2; /* Adicione uma cor de fundo */
+  transition: background-color 0.3s; /* Adicione uma transição suave */
+}
+
+.discount-input:focus {
+  outline: none; /* Remova o contorno do foco */
+  background-color: #e0e0e0; /* Altere a cor de fundo ao focar */
+}

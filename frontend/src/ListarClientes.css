@@ -1,0 +1,165 @@
+/* ListarClientes.css */
+
+/* Estilo para o container principal */
+.listar-clientes-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+  
+/* Estilo para o título */
+.listar-clientes-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+  
+/* Estilo para os cards de clientes */
+.cliente-card {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer; /* Torna o card clicável */
+    transition: transform 0.3s ease; /* Adiciona uma transição suave */
+}
+  
+.cliente-card:hover {
+    transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+}
+
+/* Estilo para o nome do cliente */
+.cliente-nome {
+    font-size: 18px;
+    font-weight: bold;
+}
+  
+  /* Estilo para o botão de editar */
+  .editar-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .editar-button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Estilo para o modal */
+  .modal {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+  
+  .modal-content {
+    background-color: #fefefe;
+    margin: 20% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    border-radius: 8px;
+  }
+  
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  /* Estilo para os inputs do modal */
+  .modal-content input[type="text"],
+  .modal-content input[type="email"] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+.modal-content .salvar-button,
+.modal-content .cancelar-button {
+  background-color: transparent; /* Define a cor de fundo como transparente */
+  color: #000; /* Define a cor do texto */
+  border: 1px solid #000; /* Adiciona uma borda */
+  padding: 14px 20px;
+  margin: 8px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  transition: background-color 0.3s; /* Adiciona uma transição suave para a mudança de cor de fundo */
+}
+
+.modal-content .cancelar-button:hover {
+  background-color: #ff5c5c; /* Vermelho para fechar */
+  color: #fff; /* Texto branco */
+}
+
+.modal-content .salvar-button:hover {
+    background-color: #4CAF50; /* Vermelho para fechar */
+    color: #fff; /* Texto branco */
+  }
+
+  /* Estilo para o formulário de edição no modal */
+  .modal-content form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Estilo para o título do modal */
+  .modal-content h2 {
+    margin-bottom: 20px;
+  }
+  
+  .busca-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .busca-container input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    flex: 1;
+  }
+  
+  .busca-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #6c63ff;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .busca-container button:hover {
+    background-color: #564bd4;
+  }
