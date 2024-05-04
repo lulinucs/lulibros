@@ -169,7 +169,7 @@ const ListaVendas = () => {
                 <div className="quantidade"> {livro.quantidade}x</div>
               <div className="isbn">{livro.livro.ISBN}</div>
               <div className="titulo">{livro.livro.Título}</div>
-              <div className="valor">R$ {livro.livro.Valor.toFixed(2)}</div>
+              <div className="valor">R$ {livro.subtotal.toFixed(2)}</div>
       
             </div>
             ))}
