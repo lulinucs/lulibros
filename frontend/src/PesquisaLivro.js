@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import apiUrl from './config'; // Importe a variável apiUrl
 import BarcodeScanner from './BarcodeScanner'; // Importe o componente BarcodeScanner
-import { FaBarcode, FaShoppingCart } from 'react-icons/fa'; // Importe o ícone de carrinho de compras
+import { FaBarcode, FaShoppingCart } from 'react-icons/fa'; // Importe o ícone de código de barras e carrinho de compras
 import './PesquisaLivro.css';
 
 function PesquisaLivro() {
@@ -9,6 +9,7 @@ function PesquisaLivro() {
   const [livro, setLivro] = useState(null);
   const [erro, setErro] = useState('');
   const [showScanner, setShowScanner] = useState(false); // Estado para controlar a exibição do BarcodeScanner
+  const [formaPagamento, setFormaPagamento] = useState(''); // Estado para a forma de pagamento
 
   const handleInputChange = (event) => {
     setIsbn(event.target.value);
@@ -50,7 +51,7 @@ function PesquisaLivro() {
   };
 
   // Função para registrar a venda do livro pesquisado
-  const handleRegistrarVenda = async () => {
+  const handleRegistrarVenda = async (forma) => {
     try {
       const response = await fetch(`${apiUrl}/registrar-venda`, {
         method: 'POST',
@@ -66,6 +67,7 @@ function PesquisaLivro() {
             subtotal: livro['Valor Feira'], // Subtotal igual ao valor 'Valor Feira'
           }],
           total: livro['Valor Feira'], // Total igual ao valor 'Valor Feira'
+          formaPagamento: forma, // Forma de pagamento
         }),
       });
       if (!response.ok) {
@@ -74,6 +76,7 @@ function PesquisaLivro() {
       console.log('Venda registrada com sucesso:', response.data);
       // Limpar estado após o registro da venda
       setLivro(null);
+      setFormaPagamento('');
       setErro('');
     } catch (error) {
       console.error('Erro ao registrar a venda:', error);
@@ -110,14 +113,37 @@ function PesquisaLivro() {
           <p><strong>Valor:</strong> R${livro.Valor.toFixed(2)}</p>
           <p><strong>Valor Feira:</strong> R${livro['Valor Feira'].toFixed(2)}</p>
           <p><strong>Estoque:</strong> {livro.Estoque}</p>
-          {/* Botão para registrar a venda */}
-          <button
-            className={`register-sale-button ${livro.Estoque < 1 ? 'disabled-button' : ''}`}
-            onClick={handleRegistrarVenda}
-            disabled={livro.Estoque < 1}
-          >
-            <FaShoppingCart /> {/* Ícone de carrinho de compras */}
-          </button>
+          {/* Botões para registrar a venda */}
+          <div className="payment-buttons">
+            <button
+              className={`payment-button ${livro.Estoque < 1 ? 'disabled-button' : ''}`}
+              onClick={() => handleRegistrarVenda('Pix')}
+              disabled={livro.Estoque < 1}
+            >
+              Pix
+            </button>
+            <button
+              className={`payment-button ${livro.Estoque < 1 ? 'disabled-button' : ''}`}
+              onClick={() => handleRegistrarVenda('Crédito')}
+              disabled={livro.Estoque < 1}
+            >
+              Crédito
+            </button>
+            <button
+              className={`payment-button ${livro.Estoque < 1 ? 'disabled-button' : ''}`}
+              onClick={() => handleRegistrarVenda('Débito')}
+              disabled={livro.Estoque < 1}
+            >
+              Débito
+            </button>
+            <button
+              className={`payment-button ${livro.Estoque < 1 ? 'disabled-button' : ''}`}
+              onClick={() => handleRegistrarVenda('Dinheiro')}
+              disabled={livro.Estoque < 1}
+            >
+              Dinheiro
+            </button>
+          </div>
         </div>
       )}
       {erro && <p className="erro">{erro}</p>}

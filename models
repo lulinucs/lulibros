@@ -52,6 +52,7 @@ const vendaSchema = new mongoose.Schema({
       subtotal: Number // Subtotal do livro com desconto
     }],
     total: Number, // Valor total da venda
+    formaPagamento: String,
     timestamp: {
       type: Date,
       default: Date.now // Timestamp da venda

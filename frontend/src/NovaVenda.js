@@ -21,6 +21,7 @@ function NovaVenda() {
     cidade: '',
     estado: ''
   });
+  const [formaPagamento, setFormaPagamento] = useState('');
 
   const handleInputChange = (event) => {
     setIsbn(event.target.value);
@@ -143,24 +144,26 @@ function NovaVenda() {
       setErro('Nenhum livro incluído na venda');
       return;
     }
+    
+    if (!formaPagamento) {
+      setErro('Selecione uma forma de pagamento');
+      return;
+    }
   
-    // Calcular o valor total da compra com desconto
-
     try {
-      const response = await axios.post(`${apiUrl}/registrar-venda`, { // Substitua a URL aqui
-        cliente: idCliente, // Passar o ID do cliente
+      const response = await axios.post(`${apiUrl}/registrar-venda`, {
+        cliente: idCliente,
         livros: livros.map(livro => ({
           livro: livro._id,
-          isbn: livro.ISBN, 
+          isbn: livro.ISBN,
           quantidade: livro.Quantidade,
           desconto: livro.Desconto,
           subtotal: calcularPrecoComDesconto(livro['Valor Feira'], livro.Desconto),
         })),
         total: totalPrecoDesconto,
+        formaPagamento: formaPagamento, // Adiciona a forma de pagamento
       });
-      console.log(livros)
       console.log('Venda registrada com sucesso:', response.data);
-      // Limpar estado após o registro da venda
       setLivros([]);
       setCliente({
         nome: '',
@@ -173,6 +176,7 @@ function NovaVenda() {
         cidade: '',
         estado: ''
       });
+      setFormaPagamento(''); // Limpar forma de pagamento
       setErro('');
     } catch (error) {
       console.error('Erro ao registrar a venda:', error);
@@ -258,10 +262,27 @@ function NovaVenda() {
             </tbody>
           </table>
 
+          <div className="forma-pagamento">
+            <select
+              id="formaPagamento"
+              className="select-forma-pagamento"
+              value={formaPagamento}
+              onChange={(e) => setFormaPagamento(e.target.value)}
+            >
+              <option value="">Forma de Pagamento</option>
+              <option value="Crédito">Crédito</option>
+              <option value="Débito">Débito</option>
+              <option value="Pix">Pix</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+
           {cliente.nome && <p>Nome do Cliente: {cliente.nome.split(' ')[0]}</p>}
           <div className="buttons-container">
-            <button className="btn-add-cliente" onClick={handleAddCliente}><FaUserPlus /> Adicionar Cliente</button>
-            <button className="btn-registrar-venda" onClick={handleRegistrarVenda}><FaShoppingCart />Registrar Venda</button>
+            {/*<button className="btn-add-cliente" onClick={handleAddCliente}><FaUserPlus /> Adicionar Cliente</button>*
+            */}<button className="btn-registrar-venda" onClick={handleRegistrarVenda}><FaShoppingCart />Registrar Venda</button>
           </div>
         </div>
       )}

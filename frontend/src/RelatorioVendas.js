@@ -129,6 +129,28 @@ function RelatorioVendas() {
     }
   };
 
+  const calculateTotal = () => {
+    let totalVendas = 0;
+    let totalProdutosVendidos = 0;
+    let valorTotalVendas = 0;
+
+    if (relatorio) {
+      relatorio.forEach(item => {
+        totalVendas += item.totalVendas;
+        totalProdutosVendidos += item.totalProdutosVendidos;
+        valorTotalVendas += item.valorTotalVendas;
+      });
+    }
+
+    return {
+      totalVendas,
+      totalProdutosVendidos,
+      valorTotalVendas,
+    };
+  };
+
+  const totals = calculateTotal();
+
   return (
     <div className="relatorio-container">
       <h2>Gerar Relatório de Vendas</h2>
@@ -153,8 +175,8 @@ function RelatorioVendas() {
             required
           />
         </div>
-        <button type="submit" onClick={handleSubmit}>Gerar Relatório</button>
-        <button onClick={handleDownload}>Baixar Relatório</button>
+        <button type="submit">Gerar Relatório</button>
+        <button type="button" onClick={handleDownload}>Baixar Relatório</button>
       </form>
   
       {relatorioLivrosVendidos && (
@@ -187,11 +209,33 @@ function RelatorioVendas() {
   
       {relatorio && (
         <div className="relatorio">
-          <p>Total de Vendas: {relatorio.totalVendas}</p>
-          <p>Total de Produtos Vendidos: {relatorio.totalProdutosVendidos}</p>
-          <p>Valor Total de Vendas: R${relatorio.valorTotalVendas.toFixed(2)}</p>
-          <p>Ticket Médio: R${relatorio.ticketMedio.toFixed(2)}</p>
-          {/* Adicione outras informações desejadas aqui */}
+          <h3>Resumo de Vendas por Forma de Pagamento</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Forma de Pagamento</th>
+                <th>Total de Vendas</th>
+                <th>Total de Produtos Vendidos</th>
+                <th>Valor Total de Vendas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {relatorio.map((item, index) => (
+                <tr key={index}>
+                  <td>{item._id || 'Não especificado'}</td>
+                  <td>{item.totalVendas}</td>
+                  <td>{item.totalProdutosVendidos}</td>
+                  <td>R${item.valorTotalVendas.toFixed(2)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td><strong>Total Geral</strong></td>
+                <td><strong>{totals.totalVendas}</strong></td>
+                <td><strong>{totals.totalProdutosVendidos}</strong></td>
+                <td><strong>R${totals.valorTotalVendas.toFixed(2)}</strong></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       )}
   

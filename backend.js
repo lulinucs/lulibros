@@ -200,13 +200,15 @@ app.post('/salvarcliente', async (req, res) => {
 app.post('/registrar-venda', async (req, res) => {
     try {
         // Extrair todas as informações da solicitação
-        const { cliente, livros, total } = req.body;
+        const { cliente, livros, total, formaPagamento } = req.body;
 
         // Criar uma nova instância do modelo Venda
         const novaVenda = new Venda({
             cliente,
             livros,
-            total
+            total,
+            formaPagamento
+
             // Outras informações relevantes da venda, se houver
         });
 
@@ -432,7 +434,6 @@ app.post('/relatorio-vendas', async (req, res) => {
     console.log(dataInicio)
     console.log(dataFim)
     
-
     // Converter as datas para objetos Date
     const dataInicioDate = new Date(dataInicio);
     const dataFimDate = new Date(dataFim);
@@ -449,12 +450,10 @@ app.post('/relatorio-vendas', async (req, res) => {
       },
       {
         $group: {
-          _id: null,
+          _id: "$formaPagamento",
           totalVendas: { $sum: 1 },
           totalProdutosVendidos: { $sum: { $sum: "$livros.quantidade" } },
-          valorTotalVendas: { $sum: "$total" },
-          ticketMedio: { $avg: "$total" }
-          // Adicione outras estatísticas desejadas aqui
+          valorTotalVendas: { $sum: "$total" }
         }
       }
     ]);
@@ -464,13 +463,14 @@ app.post('/relatorio-vendas', async (req, res) => {
       return res.status(404).json({ error: 'Nenhuma venda encontrada dentro do período especificado' });
     }
 
-    // Retornar as estatísticas das vendas
-    res.json(relatorioVendas[0]); // O resultado do aggregate é um array, então pegamos o primeiro elemento
+    // Retornar as estatísticas das vendas por forma de pagamento
+    res.json(relatorioVendas); // O resultado do aggregate é um array de objetos agrupados por forma de pagamento
   } catch (error) {
     console.error('Erro ao gerar o relatório de vendas:', error);
     res.status(500).json({ error: 'Erro ao gerar o relatório de vendas' });
   }
 });
+
 
 app.post('/relatorio-livros-vendidos', async (req, res) => {
   try {

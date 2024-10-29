@@ -46,29 +46,50 @@
   color: #fff;
 }
 
-.register-sale-button {
-  width: 100%;
-  height: 50px;
-  background-color: #28a745;
-  border: none;
-  border-radius: 5px;
-  margin-top: 10px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.register-sale-button svg {
-  margin-right: 5px;
-}
-
 .livro-detalhes {
   margin-top: 20px;
 }
 
+.livro-detalhes h2 {
+  margin-bottom: 10px;
+}
+
+.livro-detalhes p {
+  margin: 5px 0;
+}
+
 .erro {
   color: red;
+}
+
+.payment-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espaçamento entre os botões */
+  margin-top: 20px;
+}
+
+.payment-button {
+  width: 100%;
+  height: 50px;
+  background-color: #007bff; /* Cor de fundo azul */
+  border: none;
+  border-radius: 5px;
+  color: #fff; /* Cor do texto branco */
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s, transform 0.2s; /* Transição suave */
+}
+
+.payment-button:hover {
+  background-color: #0056b3; /* Cor de fundo azul escuro ao passar o mouse */
+}
+
+.payment-button:active {
+  transform: scale(0.98); /* Efeito de clique */
 }
 
 .disabled-button {

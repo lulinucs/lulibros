@@ -169,13 +169,13 @@
 }
 
 .btn-add-cliente:hover {
-  background-color: #00a2ff; /* Vermelho para fechar */
+  background-color: #00a2ff; /* Azul para adicionar cliente */
   color: #fff; /* Texto branco */
 }
 
 .btn-registrar-venda:hover {
-  background-color: #45a049; 
-  /* Amarelo para estornar venda */
+  background-color: #45a049; /* Verde para registrar venda */
+  color: #fff; /* Texto branco */
 }
 
 .modal-content .salvar-button,
@@ -193,7 +193,7 @@
 }
 
 .modal-content .cancelar-button:hover {
-  background-color: #ff5c5c; /* Vermelho para fechar */
+  background-color: #ff5c5c; /* Vermelho para cancelar */
   color: #fff; /* Texto branco */
 }
 
@@ -215,6 +215,43 @@
   background-color: #aaa;
 }
 
+.select-forma-pagamento {
+  background-color: transparent; /* Define a cor de fundo como transparente */
+  color: #000; /* Define a cor do texto */
+  border: 1px solid #000; /* Adiciona uma borda */
+  padding: 14px 20px;
+  margin: 8px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.select-forma-pagamento:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.select-forma-pagamento option {
+  padding: 10px;
+}
+
+/* Adiciona um ícone de seta para o select, se necessário */
+.select-forma-pagamento-container {
+  position: relative;
+}
+
+.select-forma-pagamento-container::after {
+  content: '▼'; /* Adiciona uma seta para baixo */
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #6c63ff;
+  pointer-events: none;
+}
 
 @media (max-width: 768px) {
   .lista-livros table {
