@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(cors());
 
-const { Cliente, Livro, Venda } = require('./models');
+const { Cliente, Livro, Venda, Caixa } = require('./models');
 
 mongoose.connect('mongodb://127.0.0.1:27017/lulifeira')
   .then(() => {
@@ -63,7 +63,6 @@ function agruparLivrosVendidos(livrosVendidos) {
 
 
 
-// Rota para upload de arquivo de estoque
 app.post('/adicionar-estoque', async (req, res) => {
   if (!req.files || !req.files.estoque) {
     return res.status(400).json({ error: 'Nenhum arquivo enviado' });
@@ -84,16 +83,30 @@ app.post('/adicionar-estoque', async (req, res) => {
     const data = xlsx.utils.sheet_to_json(sheet);
 
     for (const item of data) {
+      // Mapeia os campos do novo cabeçalho
+      const livroData = {
+        ISBN: item.ISBN,
+        Editora: item.EDITORA,
+        Título: item.TÍTULO,
+        Autor: item.AUTOR,
+        Estoque: item.ESTOQUE,
+        Valor: item['PREÇO DE'],
+        'Valor Feira': item['PREÇO POR'],
+        'Estoque Saldo': item['ESTOQUE SALDO'],
+        'Preço Saldo': item['PREÇO SALDO']
+      };
+
       // Verifica se o ISBN já está cadastrado no banco de dados
-      const existingLivro = await Livro.findOne({ ISBN: item.ISBN });
+      const existingLivro = await Livro.findOne({ ISBN: livroData.ISBN });
 
       if (existingLivro) {
-        // Se o ISBN já existir, adicione o estoque ao existente
-        existingLivro.Estoque += item.Estoque;
+        // Se o ISBN já existir, adicione o estoque e o estoque saldo ao existente
+        existingLivro.Estoque += livroData.Estoque;
+        existingLivro['Estoque Saldo'] += livroData['Estoque Saldo'];
         await existingLivro.save();
       } else {
         // Se o ISBN não existir, crie um novo documento no banco de dados
-        await Livro.create(item);
+        await Livro.create(livroData);
       }
     }
 
@@ -103,6 +116,7 @@ app.post('/adicionar-estoque', async (req, res) => {
     res.status(500).json({ error: 'Erro ao cadastrar dados do estoque' });
   }
 });
+
 
 app.post('/substituir-estoque', (req, res) => {
   if (!req.files || !req.files.estoque) {
@@ -122,10 +136,23 @@ app.post('/substituir-estoque', (req, res) => {
   const sheet = workbook.Sheets[sheetName];
   const data = xlsx.utils.sheet_to_json(sheet);
 
+  // Mapeia os dados para o novo formato
+  const mappedData = data.map(item => ({
+    ISBN: item.ISBN,
+    Editora: item.EDITORA,
+    Título: item.TÍTULO,
+    Autor: item.AUTOR,
+    Estoque: item.ESTOQUE,
+    Valor: item['PREÇO DE'],
+    'Valor Feira': item['PREÇO POR'],
+    'Estoque Saldo': item['ESTOQUE SALDO'],
+    'Preço Saldo': item['PREÇO SALDO']
+  }));
+
   // Substitui o conteúdo do estoque pelo novo conteúdo
   Livro.deleteMany({})
     .then(() => {
-      Livro.insertMany(data)
+      Livro.insertMany(mappedData)
         .then(() => {
           res.status(200).json({ message: 'Estoque substituído com sucesso' });
         })
@@ -198,34 +225,34 @@ app.post('/salvarcliente', async (req, res) => {
 });
 
 app.post('/registrar-venda', async (req, res) => {
-    try {
-        // Extrair todas as informações da solicitação
-        const { cliente, livros, total, formaPagamento } = req.body;
+  try {
+      // Extrair todas as informações da solicitação
+      const { cliente, livros, total, formaPagamento, saldo } = req.body;
 
-        // Criar uma nova instância do modelo Venda
-        const novaVenda = new Venda({
-            cliente,
-            livros,
-            total,
-            formaPagamento
+      // Criar uma nova instância do modelo Venda com o campo saldo
+      const novaVenda = new Venda({
+          cliente,
+          livros,
+          total,
+          formaPagamento,
+          saldo // Armazena o valor de saldo no banco de dados
+      });
 
-            // Outras informações relevantes da venda, se houver
-        });
+      // Salvar a venda no banco de dados
+      const vendaRegistrada = await novaVenda.save();
 
-        // Salvar a venda no banco de dados
-        const vendaRegistrada = await novaVenda.save();
+      // Atualizar o estoque dos livros vendidos na coleção de Livros
+      await Promise.all(livros.map(async (livro) => {
+          const estoqueCampo = saldo ? 'Estoque Saldo' : 'Estoque';
+          await Livro.findByIdAndUpdate(livro.livro, { $inc: { [estoqueCampo]: -livro.quantidade } });
+      }));
 
-        // Atualizar o estoque dos livros vendidos na coleção de Livros
-        await Promise.all(livros.map(async (livro) => {
-            await Livro.findByIdAndUpdate(livro.livro, { $inc: { Estoque: -livro.quantidade } });
-        }));
-
-        // Responder com sucesso
-        res.status(200).json({ mensagem: 'Venda registrada com sucesso!', venda: vendaRegistrada });
-    } catch (error) {
-        console.error('Erro ao registrar a venda:', error);
-        res.status(500).json({ mensagem: 'Erro ao registrar a venda' });
-    }
+      // Responder com sucesso
+      res.status(200).json({ mensagem: 'Venda registrada com sucesso!', venda: vendaRegistrada });
+  } catch (error) {
+      console.error('Erro ao registrar a venda:', error);
+      res.status(500).json({ mensagem: 'Erro ao registrar a venda' });
+  }
 });
 
 app.post('/estornar-venda/:id', async (req, res) => {
@@ -241,9 +268,12 @@ app.post('/estornar-venda/:id', async (req, res) => {
       return res.status(404).json({ mensagem: 'Venda não encontrada' });
     }
 
+    // Determinar qual campo de estoque ajustar com base no valor de saldo
+    const estoqueCampo = vendaParaEstornar.saldo ? 'Estoque Saldo' : 'Estoque';
+
     // Restaurar o estoque dos livros vendidos na coleção de Livros
     await Promise.all(vendaParaEstornar.livros.map(async (livro) => {
-      await Livro.findByIdAndUpdate(livro.livro, { $inc: { Estoque: livro.quantidade } });
+      await Livro.findByIdAndUpdate(livro.livro, { $inc: { [estoqueCampo]: livro.quantidade } });
     }));
 
     // Remover a venda do banco de dados
@@ -256,6 +286,7 @@ app.post('/estornar-venda/:id', async (req, res) => {
     res.status(500).json({ mensagem: 'Erro ao estornar a venda' });
   }
 });
+
 
 app.get('/vendas', async (req, res) => {
     try {
@@ -405,12 +436,21 @@ app.get('/livros', async (req, res) => {
 
 app.put('/livros/:id', async (req, res) => {
   const { id } = req.params;
-  const { ValorFeira, Estoque } = req.body;
+  const { ValorFeira, Estoque, EstoqueSaldo, PrecoSaldo } = req.body;
+
+  console.log('Atualizando livro:', { ValorFeira, Estoque, EstoqueSaldo, PrecoSaldo }); // Adicione esta linha
 
   try {
     const livro = await Livro.findByIdAndUpdate(
       id,
-      { $set: { 'Valor Feira': ValorFeira, Estoque: Estoque } },
+      { 
+        $set: { 
+          'Valor Feira': ValorFeira, 
+          Estoque: Estoque,
+          'Estoque Saldo': EstoqueSaldo,
+          'Preço Saldo': PrecoSaldo
+        } 
+      },
       { new: true }
     );
 
@@ -418,12 +458,29 @@ app.put('/livros/:id', async (req, res) => {
       return res.status(404).json({ message: 'Livro não encontrado' });
     }
 
-    res.json(livro); // Retorna o livro atualizado
+    res.json(livro);
   } catch (error) {
     console.error('Erro ao atualizar livro:', error);
     res.status(500).json({ message: 'Erro ao atualizar livro' });
   }
 });
+
+app.get('/livros/:id', async (req, res) => {
+  try {
+    const livroId = req.params.id;
+    const livro = await Livro.findById(livroId); // Usando Mongoose para buscar pelo ID
+
+    if (!livro) {
+      return res.status(404).json({ message: 'Livro não encontrado' });
+    }
+
+    res.json(livro);
+  } catch (error) {
+    console.error('Erro ao buscar livro:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 
 // Rota para obter estatísticas das vendas dentro de um período de datas
 app.post('/relatorio-vendas', async (req, res) => {
@@ -563,5 +620,227 @@ app.post('/relatorio-livros-vendidos-xlsx', async (req, res) => {
   }
 });
 
+app.post('/caixa/abrir', async (req, res) => {
+  const { nomeAbertura, fundoCaixa } = req.body;
+
+  // Verificar se os campos obrigatórios estão presentes
+  if (!nomeAbertura || fundoCaixa === undefined) {
+    return res.status(400).json({ message: 'Nome de abertura e fundo de caixa são obrigatórios.' });
+  }
+
+  try {
+    // Verificar se já existe um caixa aberto hoje
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0); // Zerar horas, minutos, segundos e milissegundos
+    const caixaExistente = await Caixa.findOne({
+      data: {
+        $gte: hoje, // A data deve ser maior ou igual a hoje
+        $lt: new Date(hoje.getTime() + 24 * 60 * 60 * 1000) // E menor que amanhã
+      }
+    });
+
+    if (caixaExistente) {
+      return res.status(400).json({
+        message: 'Não é possível abrir o caixa. Já existe um caixa aberto para hoje.',
+        caixaExistente // Opcional: Retorna o caixa existente para mais informações
+      });
+    }
+
+    // Criar nova instância de Caixa
+    const novaCaixa = new Caixa({
+      data: new Date(), // Data e hora da requisição
+      nomeAbertura,
+      fundoCaixa, // Supondo que o valor de abertura seja igual ao fundo de caixa
+    });
+
+    // Salvar a nova caixa no banco de dados
+    await novaCaixa.save();
+
+    // Retornar resposta com a nova caixa criada
+    res.status(201).json(novaCaixa);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao abrir caixa. Por favor, tente novamente mais tarde.' });
+  }
+});
 
   
+app.post('/caixa/fechar', async (req, res) => {
+  const { nomeFechamento, valorFechamento, credito, debito, pix, outros } = req.body;
+
+  // Verificar se os campos obrigatórios estão presentes
+  if (!nomeFechamento || valorFechamento === undefined) {
+    return res.status(400).json({ mensagem: 'Nome de fechamento e valor de fechamento são obrigatórios.' });
+  }
+
+  try {
+    // Obter a data e hora atual
+    const dataFechamento = new Date();
+
+    // Verificar se existe um caixa aberto hoje
+    const caixaAberta = await Caixa.findOne({
+      data: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      nomeFechamento: { $exists: false }
+    });
+
+    if (!caixaAberta) {
+      return res.status(404).json({ mensagem: 'Nenhuma caixa aberta encontrada para fechamento.' });
+    }
+
+    // Calcular as vendas por forma de pagamento apenas do dia atual
+    const vendas = await Venda.find({
+      timestamp: {
+        $gte: new Date(new Date().setHours(0, 0, 0, 0)), // Início do dia
+        $lte: new Date(new Date().setHours(23, 59, 59, 999)) // Fim do dia
+      }
+    });
+
+    // Calcular os totais por forma de pagamento
+    const totalDinheiro = vendas
+      .filter(venda => venda.formaPagamento === 'Dinheiro')
+      .reduce((acc, venda) => acc + venda.total, 0);
+
+    const totalCredito = vendas
+      .filter(venda => venda.formaPagamento === 'Crédito')
+      .reduce((acc, venda) => acc + venda.total, 0);
+
+    const totalDebito = vendas
+      .filter(venda => venda.formaPagamento === 'Débito')
+      .reduce((acc, venda) => acc + venda.total, 0);
+
+    const totalPix = vendas
+      .filter(venda => venda.formaPagamento === 'Pix')
+      .reduce((acc, venda) => acc + venda.total, 0);
+
+    const totalOutros = vendas
+      .filter(venda => venda.formaPagamento === 'Outros')
+      .reduce((acc, venda) => acc + venda.total, 0);
+
+    // Atualizar a caixa com o fechamento e calcular as diferenças
+    const caixaFechada = await Caixa.findByIdAndUpdate(
+      caixaAberta._id,
+      {
+        dataFechamento,
+        nomeFechamento,
+        valorFechamento,
+        credito,
+        debito,
+        pix,
+        outros,
+        vendasDinheiro: totalDinheiro,
+        vendasCredito: totalCredito,
+        vendasDebito: totalDebito,
+        vendasPix: totalPix,
+        vendasOutros: totalOutros,
+        diferencaDinheiro: totalDinheiro - valorFechamento + caixaAberta.fundoCaixa,
+        diferencaCredito: totalCredito - credito,
+        diferencaDebito: totalDebito - debito,
+        diferencaPix: totalPix - pix,
+        diferencaOutros: totalOutros - outros,
+      },
+      { new: true }
+    );
+
+    // Retornar resposta com a caixa fechada
+    res.status(200).json({ mensagem: 'Caixa fechado com sucesso!', caixa: caixaFechada });
+  } catch (error) {
+    console.error('Erro ao fechar caixa:', error);
+    res.status(500).json({ mensagem: 'Erro ao fechar caixa.' });
+  }
+});
+
+
+
+
+
+app.post('/caixa/adicionar', async (req, res) => {
+  const { valor, justificativa } = req.body;
+
+  try {
+    // Obter a data atual sem horário
+    const dataHoje = new Date();
+    dataHoje.setHours(0, 0, 0, 0);
+
+    // Verificar se existe um caixa aberto para hoje
+    const caixa = await Caixa.findOne({
+      data: { $gte: dataHoje },
+      dataFechamento: { $exists: false } // Verifica se o caixa não foi fechado
+    });
+
+    if (!caixa) {
+      return res.status(400).json({ message: 'Nenhum caixa aberto para hoje.' });
+    }
+
+    // Atualizar fundoCaixa
+    caixa.fundoCaixa += valor;
+    caixa.movimentacao.push({ valor, justificativa }); // Adiciona a movimentação ao caixa
+    await caixa.save(); // Salva as alterações no caixa
+
+    res.status(200).json({ message: 'Dinheiro adicionado com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao adicionar movimentação:', error);
+    res.status(500).json({ message: 'Erro ao adicionar dinheiro.' });
+  }
+});
+
+app.post('/caixa/remover', async (req, res) => {
+  const { valor, justificativa } = req.body;
+
+  try {
+    // Obter a data atual sem horário
+    const dataHoje = new Date();
+    dataHoje.setHours(0, 0, 0, 0);
+
+    // Verificar se existe um caixa aberto para hoje
+    const caixa = await Caixa.findOne({
+      data: { $gte: dataHoje },
+      dataFechamento: { $exists: false } // Verifica se o caixa não foi fechado
+    });
+
+    if (!caixa) {
+      return res.status(400).json({ message: 'Nenhum caixa aberto para hoje.' });
+    }
+
+    // Verificar se há fundo suficiente para remoção
+    if (caixa.fundoCaixa < valor) {
+      return res.status(400).json({ message: 'Fundo insuficiente para remoção.' });
+    }
+
+    // Atualizar fundoCaixa
+    caixa.fundoCaixa -= valor;
+    caixa.movimentacao.push({ valor: -valor, justificativa }); // Adiciona a movimentação como negativa
+    await caixa.save(); // Salva as alterações no caixa
+
+    res.status(200).json({ message: 'Dinheiro removido com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao remover movimentação:', error);
+    res.status(500).json({ message: 'Erro ao remover dinheiro.' });
+  }
+});
+
+
+app.get('/caixa', async (req, res) => {
+  const { data } = req.query;
+  console.log(data);
+  
+  try {
+    // Se a data for fornecida, converta-a para o formato correto de busca no MongoDB
+    if (data) {
+      const dataInicio = new Date(`${data}T00:00:00.000Z`); // Início do dia
+      const dataFim = new Date(`${data}T23:59:59.999Z`); // Fim do dia
+      
+      const filtro = {
+        data: { $gte: dataInicio, $lte: dataFim }
+      };
+
+      // Buscar caixas com o filtro aplicado
+      const caixas = await Caixa.find(filtro);
+      res.status(200).json(caixas);
+    } else {
+      res.status(400).json({ mensagem: 'A data é obrigatória.' });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar caixas:', error);
+    res.status(500).json({ mensagem: 'Erro ao buscar caixas.' });
+  }
+});

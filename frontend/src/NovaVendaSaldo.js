@@ -22,57 +22,52 @@ function NovaVenda() {
     estado: ''
   });
   const [formaPagamento, setFormaPagamento] = useState('');
-  const [isSaldo, setIsSaldo] = useState(false); // Estado para o switch
-
-  const handleSwitchChange = () => {
-    // Só permite alterar o switch se não houver livros na lista
-    if (livros.length === 0) {
-      setIsSaldo(!isSaldo); // Alterna entre "Novo" e "Saldo"
-    } else {
-      setErro('Não é possível mudar o tipo de estoque com livros adicionados.');
-    }
-  };
 
   const handleInputChange = (event) => {
     setIsbn(event.target.value);
   };
 
   const handleKeyPress = async (event) => {
-    if (event.key === 'Enter') {
-      try {
-        const response = await fetch(`${apiUrl}/livro/${isbn}`);
-        if (!response.ok) {
-          throw new Error('Livro não encontrado');
-        }
-        const data = await response.json();
-        const livroExistente = livros.find((livro) => livro.ISBN === data.livro.ISBN);
+  if (event.key === 'Enter') {
+    // Pergunta se é "Saldo" ou "Novo"
+    const isSaldo = window.confirm("Este livro é 'Saldo'? Clique em 'OK' para Sim e 'Cancel' para Novo.");
 
-        const estoqueAtual = isSaldo ? data.livro['Estoque Saldo'] : data.livro.Estoque;
-        if (livroExistente) {
-          if (livroExistente.Quantidade < estoqueAtual) {
-            setLivros(livros.map((livro) =>
-              livro.ISBN === data.livro.ISBN
-                ? { ...livro, Quantidade: livro.Quantidade + 1 }
-                : livro
-            ));
-            setErro('');
-          } else {
-            setErro('A quantidade excede o estoque disponível');
-          }
-        } else {
-          if (estoqueAtual >= 1) {
-            setLivros([...livros, { ...data.livro, Quantidade: 1, Desconto: 0 }]);
-            setErro('');
-          } else {
-            setErro('Estoque indisponível! Verifique o campo "Saldo/Novo".');
-          }
-        }
-        setIsbn('');
-      } catch (error) {
-        setErro(error.message);
+    // Determina o tipo baseado na resposta
+    const tipoLivro = isSaldo ? 'Saldo' : 'Novo';
+
+    try {
+      const response = await fetch(`${apiUrl}/livro/${isbn}`);
+      if (!response.ok) {
+        throw new Error('Livro não encontrado');
       }
+      const data = await response.json();
+      const livroExistente = livros.find((livro) => livro.ISBN === data.livro.ISBN);
+      if (livroExistente) {
+        if (livroExistente.Quantidade < data.livro.Estoque) {
+          setLivros(livros.map((livro) =>
+            livro.ISBN === data.livro.ISBN
+              ? { ...livro, Quantidade: livro.Quantidade + 1 }
+              : livro
+          ));
+          setErro('');
+        } else {
+          setErro('A quantidade excede o estoque disponível');
+        }
+      } else {
+        if (data.livro.Estoque >= 1) {
+          // Adiciona o tipo do livro ao objeto
+          setLivros([...livros, { ...data.livro, Quantidade: 1, Desconto: 0, Tipo: tipoLivro }]);
+          setErro('');
+        } else {
+          setErro('O estoque deste livro é menor que 1');
+        }
+      }
+      setIsbn('');
+    } catch (error) {
+      setErro(error.message);
     }
-  };
+  }
+};
 
   const handleAddCliente = () => {
     setShowModal(true);
@@ -143,9 +138,8 @@ function NovaVenda() {
   };
 
   const calcularSubtotal = (livro) => {
-    const valor = isSaldo ? livro['Preço Saldo'] : livro['Valor Feira'];
-    const precoComDesconto = calcularPrecoComDesconto(valor, livro.Desconto);
-    return (precoComDesconto * livro.Quantidade).toFixed(2);
+    const precoDesconto = calcularPrecoComDesconto(livro['Valor Feira'], livro.Desconto);
+    return (precoDesconto * livro.Quantidade).toFixed(2);
   };
 
   const totalQuantidade = livros.reduce((acc, livro) => acc + livro.Quantidade, 0);
@@ -161,8 +155,6 @@ function NovaVenda() {
       setErro('Selecione uma forma de pagamento');
       return;
     }
-
-    
   
     try {
       const response = await axios.post(`${apiUrl}/registrar-venda`, {
@@ -172,12 +164,10 @@ function NovaVenda() {
           isbn: livro.ISBN,
           quantidade: livro.Quantidade,
           desconto: livro.Desconto,
-          subtotal: calcularPrecoComDesconto(isSaldo ? livro['Preço Saldo'] : livro['Valor Feira'], livro.Desconto),
-          estoqueTipo: isSaldo ? 'Estoque Saldo' : 'Estoque' // Define qual estoque deve ser atualizado
+          subtotal: calcularPrecoComDesconto(livro['Valor Feira'], livro.Desconto),
         })),
         total: totalPrecoDesconto,
-        formaPagamento: formaPagamento,
-        saldo: isSaldo
+        formaPagamento: formaPagamento, // Adiciona a forma de pagamento
       });
       console.log('Venda registrada com sucesso:', response.data);
       setLivros([]);
@@ -192,7 +182,7 @@ function NovaVenda() {
         cidade: '',
         estado: ''
       });
-      setFormaPagamento('');
+      setFormaPagamento(''); // Limpar forma de pagamento
       setErro('');
     } catch (error) {
       console.error('Erro ao registrar a venda:', error);
@@ -210,24 +200,14 @@ function NovaVenda() {
 
       <div className="input-group">
         <label htmlFor="isbn">Nova Venda</label>
-        <div className="input-container">
-          <input
-            type="text"
-            id="isbn"
-            placeholder="Digite o ISBN do livro..."
-            value={isbn}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-          />
-          <div className="switch-container">
-            <label className="switch">
-              <input type="checkbox" checked={isSaldo} onChange={handleSwitchChange} />
-              <span className="slider"></span>
-            </label>
-            <span>{isSaldo ? 'Saldo' : 'Novo'}</span>
-          </div>
-        </div>
-        {erro && <p className="erro">{erro}</p>}
+        <input
+          type="text"
+          id="isbn"
+          placeholder="Digite o ISBN do livro..."
+          value={isbn}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
+        />
       </div>
 
       {livros.length > 0 && (
@@ -248,47 +228,37 @@ function NovaVenda() {
               </tr>
             </thead>
             <tbody>
-            {livros.map((livro, index) => (
-              <tr key={index}>
-                <td>{livro.ISBN}</td>
-                <td>{livro.Título}</td>
-                <td>{livro.Editora}</td>
-                <td>{livro.Autor}</td>
-                <td style={{ textDecoration: 'line-through', color: 'red' }}>R${livro.Valor.toFixed(2)}</td>
-                <td style={{ color: 'green' }}>
-                  R${isSaldo ? livro['Preço Saldo'].toFixed(2) : livro['Valor Feira'].toFixed(2)}
-                </td>
-                <td>
-                  <div className="quantidade-buttons">
-                    <FaMinusCircle onClick={() => handleEditQuantidade(livro, Math.max(1, livro.Quantidade - 1))} />
-                    <span className="quantidade">{livro.Quantidade}</span>
-                    <FaPlusCircle 
-                      onClick={() => handleEditQuantidade(
-                        livro, 
-                        Math.min(
-                          livro.Quantidade + 1, 
-                          isSaldo ? livro['Estoque Saldo'] : livro.Estoque // Usa 'Estoque Saldo' ou 'Estoque' conforme o switch
-                        )
-                      )} 
+              {livros.map((livro, index) => (
+                <tr key={index}>
+                  <td>{livro.ISBN}</td>
+                  <td>{livro.Título}</td>
+                  <td>{livro.Editora}</td>
+                  <td>{livro.Autor}</td>
+                  <td style={{ textDecoration: 'line-through', color: 'red' }}>R${livro.Valor.toFixed(2)}</td>
+                  <td style={{ color: 'green' }}>R${livro['Valor Feira'].toFixed(2)}</td>
+                  <td>
+                    <div className="quantidade-buttons">
+                      <FaMinusCircle onClick={() => handleEditQuantidade(livro, Math.max(1, livro.Quantidade - 1))} />
+                      <span className="quantidade">{livro.Quantidade}</span>
+                      <FaPlusCircle onClick={() => handleEditQuantidade(livro, Math.min(livro.Quantidade + 1, livro.Estoque))} />
+                    </div>
+                  </td>
+                  <td>
+                    <input
+                      className="discount-input"
+                      type="number"
+                      value={livro.Desconto || 0}
+                      onChange={(event) => handleDescontoChange(livro, event)}
                     />
-                  </div>
-                </td>
-                <td>
-                  <input
-                    className="discount-input"
-                    type="number"
-                    value={livro.Desconto || 0}
-                    onChange={(event) => handleDescontoChange(livro, event)}
-                  />
-                </td>
-                <td>R${calcularSubtotal(livro)}</td>
-                <td>
-                  <button className="remove-button" onClick={() => handleRemoveLivro(livro.ISBN)}>
-                    <FaTrashAlt />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>R${calcularSubtotal(livro)}</td>
+                  <td>
+                    <button className="remove-button" onClick={() => handleRemoveLivro(livro.ISBN)}>
+                      <FaTrashAlt />
+                    </button>
+                  </td>
+                </tr>
+              ))}
               <tr className="total-row">
                 <td colSpan="6">Totais:</td>
                 <td>{totalQuantidade}</td>
@@ -323,7 +293,7 @@ function NovaVenda() {
         </div>
       )}
 
-      
+      {erro && <p className="erro">{erro}</p>}
     </div>
   );
 }

@@ -163,7 +163,9 @@ const ListaVendas = () => {
             <h2>Detalhes da Venda</h2>
             <p className="date">{formatarTimestamp(vendaSelecionada.timestamp)}</p>
 
-            <h3>Livros</h3>
+            <p><strong>Forma de Pagamento:</strong> {vendaSelecionada.formaPagamento}</p>
+            <p><strong>Tipo de Venda:</strong> {vendaSelecionada.tipoVenda === 'saldo' ? 'Saldo' : 'Novo'}</p>
+
             {vendaSelecionada.livros.map((livro) => (
               <div key={livro._id} className="livro-card">
                 <div className="quantidade"> {livro.quantidade}x</div>

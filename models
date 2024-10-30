@@ -6,9 +6,11 @@ const livroSchema = new mongoose.Schema({
   Editora: String,
   Título: String,
   Autor: String,
+  Estoque: Number,
   Valor: Number,
   'Valor Feira': Number,
-  Estoque: Number
+  'Estoque Saldo': Number,
+  'Preço Saldo': Number
 });
 
 // Schema do Cliente
@@ -37,6 +39,7 @@ const clienteSchema = new mongoose.Schema({
 
 // Schema da Venda
 const vendaSchema = new mongoose.Schema({
+    saldo: Boolean,
     cliente: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Cliente' // Referência ao modelo de Cliente
@@ -56,8 +59,36 @@ const vendaSchema = new mongoose.Schema({
     timestamp: {
       type: Date,
       default: Date.now // Timestamp da venda
-    }
+    },
     // Outras informações relevantes da venda, se houver
+  });
+
+  const caixaSchema = new mongoose.Schema({
+    data: { type: Date, default: Date.now },
+    nomeAbertura: { type: String, required: true },
+    fundoCaixa: { type: Number, required: true },
+    credito: { type: Number, default: 0 },
+    debito: { type: Number, default: 0 },
+    pix: { type: Number, default: 0 },
+    outros: { type: Number, default: 0 },
+    movimentacao: [{
+      valor: { type: Number, required: true },
+      justificativa: { type: String, required: true },
+      data: { type: Date, default: Date.now },
+    }],
+    dataFechamento: { type: Date },
+    nomeFechamento: { type: String },
+    valorFechamento: { type: Number },
+    diferencaDinheiro: { type: Number },
+    diferencaCredito: { type: Number },
+    diferencaDebito: { type: Number },
+    diferencaPix: { type: Number },
+    diferencaOutros: { type: Number },
+    vendasDinheiro: { type: Number, default: 0 },
+    vendasCredito: { type: Number, default: 0 },
+    vendasDebito: { type: Number, default: 0 },
+    vendasPix: { type: Number, default: 0 },
+    vendasOutros: { type: Number, default: 0 },
   });
 
 // Modelo do Livro
@@ -69,5 +100,7 @@ const Cliente = mongoose.model('Cliente', clienteSchema);
 // Modelo da Venda
 const Venda = mongoose.model('Venda', vendaSchema);
 
+const Caixa = mongoose.model('Caixa', caixaSchema);
+
 // Exportar os modelos
-module.exports = { Livro, Cliente, Venda };
+module.exports = { Livro, Cliente, Venda, Caixa };

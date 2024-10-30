@@ -9,9 +9,10 @@ import logo from './logo512.png';
 import ListarLivro from './ListarLivros'; 
 import RelatorioVendas from './RelatorioVendas';
 import Connect from './Connect';
+import Financeiro from './Financeiro';
 
 function App() {
-  const [selectedComponent, setSelectedComponent] = useState('PesquisaLivro');
+  const [selectedComponent, setSelectedComponent] = useState('NovaVenda');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const renderComponent = (component) => {
@@ -32,6 +33,8 @@ function App() {
         return <RelatorioVendas />;
       case 'Connect': // Adicione o caso para Connect
         return <Connect />;
+      case 'Financeiro': // Adicione o caso para Connect
+        return <Financeiro />;
       default:
         return null;
     }
@@ -49,13 +52,14 @@ function App() {
       </header>
       <nav className={`menu ${mobileMenuOpen ? 'open' : ''}`}>
         <button className={`hide-mobile ${selectedComponent === 'NovaVenda' ? 'active' : ''}`} onClick={() => setSelectedComponent('NovaVenda')}>Nova Venda</button>
-        <button className={`${selectedComponent === 'PesquisaLivro' ? 'active' : ''}`} onClick={() => setSelectedComponent('PesquisaLivro')}>Venda Rápida</button>
+        {/*<button className={`${selectedComponent === 'PesquisaLivro' ? 'active' : ''}`} onClick={() => setSelectedComponent('PesquisaLivro')}>Venda Rápida</button>*/}
         <button className={`${selectedComponent === 'ListaVendas' ? 'active' : ''}`} onClick={() => setSelectedComponent('ListaVendas')}>Vendas</button>
         <button className={`hide-mobile ${selectedComponent === 'ListarClientes' ? 'active' : ''}`} onClick={() => setSelectedComponent('ListarClientes')}>Clientes</button>
         <button className={`hide-mobile ${selectedComponent === 'FileUpload' ? 'active' : ''}`} onClick={() => setSelectedComponent('FileUpload')}>Adicionar Estoque</button> 
         <button className={`hide-mobile ${selectedComponent === 'ListarLivro' ? 'active' : ''}`} onClick={() => setSelectedComponent('ListarLivro')}>Pesquisar</button>
         <button className={`hide-mobile ${selectedComponent === 'RelatorioVendas' ? 'active' : ''}`} onClick={() => setSelectedComponent('RelatorioVendas')}>Relatório de Vendas</button>
-        <button className={`${selectedComponent === 'Connect' ? 'active' : ''}`} onClick={() => setSelectedComponent('Connect')}>Mobile</button> {/* Adicione o botão para Connect */}
+        <button className={`hide-mobile ${selectedComponent === 'ListarClientes' ? 'active' : ''}`} onClick={() => setSelectedComponent('Financeiro')}>Financeiro</button>
+        {/*<button className={`${selectedComponent === 'Connect' ? 'active' : ''}`} onClick={() => setSelectedComponent('Connect')}>Mobile</button>  Adicione o botão para Connect */}
       </nav>
       <main>
         <div className="main-content">{renderComponent(selectedComponent)}</div>
