@@ -16,19 +16,47 @@ app.use(cors());
 
 const { Cliente, Livro, Venda, Caixa } = require('./models');
 
-mongoose.connect('mongodb://127.0.0.1:27017/lulifeira')
+// Caminho para os certificados
+const CERT_PATH = './frontend/.cert/cert.pem';
+const KEY_PATH = './frontend/.cert/key.pem';
+
+// Carregar os certificados
+const privateKey = fs.readFileSync(KEY_PATH, 'utf8');
+const certificate = fs.readFileSync(CERT_PATH, 'utf8');
+
+// Configurar HTTPS
+const credentials = { key: privateKey, cert: certificate };
+
+const DB_PASSWORD = 'v1d4l0k4'; // Substitua pela senha real do banco de dados
+const DB_NAME = 'lulifeira'; // Nome do seu banco de dados no cluster remoto
+const DB_URI = `mongodb+srv://lucasfgnu:${encodeURIComponent(DB_PASSWORD)}@cluster0.lecvn.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
+
+mongoose.connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    console.log('Conectado ao MongoDB local');
-    const server = https.createServer({
-      key: fs.readFileSync('./frontend/.cert/key.pem'),
-      cert: fs.readFileSync('./frontend/.cert/cert.pem')
-    }, app);
-    server.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
+    console.log('Conectado ao MongoDB remoto');
+    
+    // Definir um schema simples (opcional)
+    const testSchema = new mongoose.Schema({
+      name: String,
+      age: Number
     });
+
+    // Criar o modelo associado à coleção "testCollection"
+    const TestModel = mongoose.model('testCollection', testSchema);
+
+    // Inserir um documento para criar a coleção automaticamente
+    TestModel.create({ name: 'Teste', age: 42 })
+      .then((doc) => {
+        console.log('Documento inserido:', doc);
+
+      })
+      .catch((err) => {
+        console.error('Erro ao inserir documento:', err);
+
+      });
   })
   .catch((error) => {
-    console.error('Erro ao conectar ao MongoDB local:', error);
+    console.error('Erro ao conectar ao MongoDB remoto:', error);
   });
 
 
@@ -843,4 +871,13 @@ app.get('/caixa', async (req, res) => {
     console.error('Erro ao buscar caixas:', error);
     res.status(500).json({ mensagem: 'Erro ao buscar caixas.' });
   }
+});
+
+
+// Criar servidor HTTPS
+const httpsServer = https.createServer(credentials, app);
+
+// Iniciar o servidor
+httpsServer.listen(PORT, () => {
+  console.log(`Servidor HTTPS rodando em https://localhost:${PORT}`);
 });
