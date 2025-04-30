@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './NovaVenda.css';
 import apiUrl from './config'; // Importe a variável apiUrl
-import { FaTrashAlt, FaMinusCircle, FaPlusCircle, FaUserPlus, FaShoppingCart } from 'react-icons/fa';
+import { FaTrashAlt, FaMinusCircle, FaPlusCircle, FaUserPlus, FaShoppingCart, FaBook } from 'react-icons/fa';
 
 function NovaVenda() {
   const [isbn, setIsbn] = useState('');
@@ -21,8 +21,36 @@ function NovaVenda() {
     cidade: '',
     estado: ''
   });
-  const [formaPagamento, setFormaPagamento] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState('Outros');
   const [isSaldo, setIsSaldo] = useState(false); // Estado para o switch
+  const [imageLoadErrors, setImageLoadErrors] = useState({});
+  const isbnInputRef = useRef(null);
+  const [showClienteModal, setShowClienteModal] = useState(false);
+  const [novoCliente, setNovoCliente] = useState({
+    nome: '',
+    cpf: '',
+    email: '',
+    telefone: '',
+    cep: '',
+    endereco: '',
+    bairro: '',
+    cidade: '',
+    estado: ''
+  });
+  const [loadingCpf, setLoadingCpf] = useState(false);
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [clienteEncontrado, setClienteEncontrado] = useState(false);
+
+  useEffect(() => {
+    // Foca o input de ISBN ao montar o componente
+    if (isbnInputRef.current) {
+      isbnInputRef.current.focus();
+    }
+  }, []);
+
+  const handleImageError = (isbn) => {
+    setImageLoadErrors(prev => ({ ...prev, [isbn]: true }));
+  };
 
   const handleSwitchChange = () => {
     // Só permite alterar o switch se não houver livros na lista
@@ -98,12 +126,56 @@ function NovaVenda() {
 
   const handleInputChangeCliente = (event) => {
     const { name, value } = event.target;
-    setCliente({ ...cliente, [name]: value });
+    setNovoCliente({ ...novoCliente, [name]: value });
   };
 
-  const handleCancelarCliente = () => {
-    setShowModal(false);
-    setCliente({
+  const handleAbrirClienteModal = () => {
+    // Limpa o formulário ao abrir o modal
+    setNovoCliente({
+      nome: '',
+      cpf: '',
+      email: '',
+      telefone: '',
+      cep: '',
+      endereco: '',
+      bairro: '',
+      cidade: '',
+      estado: ''
+    });
+    setClienteEncontrado(false);
+    setShowClienteModal(true);
+  };
+
+  const handleSalvarNovoCliente = async (event) => {
+    event.preventDefault();
+    try {
+      // Tenta salvar/criar o cliente
+      const response = await axios.post(`${apiUrl}/salvarcliente`, novoCliente);
+      const clienteSalvo = response.data.cliente;
+      
+      // Atualiza o estado com o cliente vinculado
+      setIdCliente(clienteSalvo._id.toString());
+      setCliente(clienteSalvo);
+      setShowClienteModal(false);
+      setNovoCliente({
+        nome: '',
+        cpf: '',
+        email: '',
+        telefone: '',
+        cep: '',
+        endereco: '',
+        bairro: '',
+        cidade: '',
+        estado: ''
+      });
+    } catch (error) {
+      setErro('Erro ao salvar o cliente.');
+    }
+  };
+
+  const handleFecharClienteModal = () => {
+    setShowClienteModal(false);
+    setNovoCliente({
       nome: '',
       cpf: '',
       email: '',
@@ -151,6 +223,18 @@ function NovaVenda() {
   const totalQuantidade = livros.reduce((acc, livro) => acc + livro.Quantidade, 0);
   const totalPrecoDesconto = livros.reduce((acc, livro) => acc + Number(calcularSubtotal(livro)), 0);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Verifica se Ctrl+Enter foi pressionado
+      if (event.ctrlKey && event.key === 'Enter') {
+        handleRegistrarVenda();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [livros, formaPagamento]); // Dependências necessárias para o handleRegistrarVenda
+
   const handleRegistrarVenda = async () => {
     if (livros.length === 0) {
       setErro('Nenhum livro incluído na venda');
@@ -162,8 +246,6 @@ function NovaVenda() {
       return;
     }
 
-    
-  
     try {
       const response = await axios.post(`${apiUrl}/registrar-venda`, {
         cliente: idCliente,
@@ -173,32 +255,89 @@ function NovaVenda() {
           quantidade: livro.Quantidade,
           desconto: livro.Desconto,
           subtotal: calcularPrecoComDesconto(isSaldo ? livro['Preço Saldo'] : livro['Valor Feira'], livro.Desconto),
-          estoqueTipo: isSaldo ? 'Estoque Saldo' : 'Estoque' // Define qual estoque deve ser atualizado
+          estoqueTipo: isSaldo ? 'Estoque Saldo' : 'Estoque'
         })),
         total: totalPrecoDesconto,
         formaPagamento: formaPagamento,
         saldo: isSaldo
       });
-      console.log('Venda registrada com sucesso:', response.data);
+      
       setLivros([]);
-      setCliente({
-        nome: '',
-        cpf: '',
-        email: '',
-        telefone: '',
-        cep: '',
-        endereco: '',
-        bairro: '',
-        cidade: '',
-        estado: ''
-      });
-      setFormaPagamento('');
       setErro('');
+      if (isbnInputRef.current) {
+        isbnInputRef.current.focus();
+      }
     } catch (error) {
       console.error('Erro ao registrar a venda:', error);
+      setErro('Erro ao registrar a venda. Tente novamente.');
     }
   };
-  
+
+  // Busca cliente por CPF ao digitar 11 dígitos
+  useEffect(() => {
+    const buscarClientePorCpf = async () => {
+      if (novoCliente.cpf && novoCliente.cpf.length === 11) {
+        setLoadingCpf(true);
+        try {
+          const response = await axios.get(`${apiUrl}/cliente/${novoCliente.cpf}`);
+          if (response.data) {
+            const clienteEncontrado = response.data;
+            // Atualiza o estado do novoCliente com os dados encontrados
+            setNovoCliente({
+              nome: clienteEncontrado.nome || '',
+              cpf: clienteEncontrado.cpf || '',
+              email: clienteEncontrado.email || '',
+              telefone: clienteEncontrado.telefone || '',
+              cep: clienteEncontrado.cep || '',
+              endereco: clienteEncontrado.endereco || '',
+              bairro: clienteEncontrado.bairro || '',
+              cidade: clienteEncontrado.cidade || '',
+              estado: clienteEncontrado.estado || ''
+            });
+            setClienteEncontrado(true);
+          } else {
+            setClienteEncontrado(false);
+          }
+        } catch (error) {
+          setClienteEncontrado(false);
+        } finally {
+          setLoadingCpf(false);
+        }
+      } else {
+        setClienteEncontrado(false);
+      }
+    };
+    buscarClientePorCpf();
+    // eslint-disable-next-line
+  }, [novoCliente.cpf]);
+
+  // Busca endereço pelo CEP ao digitar 8 dígitos
+  useEffect(() => {
+    const buscarEnderecoPorCep = async () => {
+      if (novoCliente.cep && novoCliente.cep.length === 8) {
+        setLoadingCep(true);
+        try {
+          const response = await fetch(`https://viacep.com.br/ws/${novoCliente.cep}/json/`);
+          const data = await response.json();
+          if (!data.erro) {
+            setNovoCliente(prev => ({
+              ...prev,
+              endereco: data.logradouro || '',
+              bairro: data.bairro || '',
+              cidade: data.localidade || '',
+              estado: data.uf || ''
+            }));
+          }
+        } catch (error) {
+          // Não faz nada se não encontrar
+        } finally {
+          setLoadingCep(false);
+        }
+      }
+    };
+    buscarEnderecoPorCep();
+    // eslint-disable-next-line
+  }, [novoCliente.cep]);
 
   return (
     <div className="NovaVenda">
@@ -208,16 +347,46 @@ function NovaVenda() {
         </div>
       )}
 
+      {showClienteModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={handleFecharClienteModal}>&times;</span>
+            <h3>Adicionar Cliente</h3>
+            <form onSubmit={handleSalvarNovoCliente}>
+              <input type="text" name="nome" value={novoCliente.nome} onChange={handleInputChangeCliente} placeholder="Nome" required />
+              <input type="text" name="cpf" value={novoCliente.cpf} onChange={handleInputChangeCliente} placeholder="CPF" />
+              {loadingCpf && <span className="spinner" />}
+              <input type="email" name="email" value={novoCliente.email} onChange={handleInputChangeCliente} placeholder="Email" />
+              <input type="text" name="telefone" value={novoCliente.telefone} onChange={handleInputChangeCliente} placeholder="Telefone" />
+              <input type="text" name="cep" value={novoCliente.cep} onChange={handleInputChangeCliente} placeholder="CEP" />
+              {loadingCep && <span className="spinner" />}
+              <input type="text" name="endereco" value={novoCliente.endereco} onChange={handleInputChangeCliente} placeholder="Endereço" />
+              <input type="text" name="bairro" value={novoCliente.bairro} onChange={handleInputChangeCliente} placeholder="Bairro" />
+              <input type="text" name="cidade" value={novoCliente.cidade} onChange={handleInputChangeCliente} placeholder="Cidade" />
+              <input type="text" name="estado" value={novoCliente.estado} onChange={handleInputChangeCliente} placeholder="Estado" />
+              <div className="botoes-cliente">
+                <button type="submit" className="btn-registrar-venda">
+                  {clienteEncontrado ? 'Vincular Cliente' : 'Cadastrar Cliente'}
+                </button>
+                <button type="button" className="btn-cancelar-cliente" onClick={handleFecharClienteModal}>Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="input-group">
         <label htmlFor="isbn">Nova Venda</label>
         <div className="input-container">
           <input
+            ref={isbnInputRef}
             type="text"
             id="isbn"
             placeholder="Digite o ISBN do livro..."
             value={isbn}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
+            autoFocus
           />
           <div className="switch-container">
             <label className="switch">
@@ -235,10 +404,10 @@ function NovaVenda() {
           <table>
             <thead>
               <tr>
+                <th>Capa</th>
+                <th>Livro</th>
                 <th>ISBN</th>
-                <th>Título</th>
                 <th>Editora</th>
-                <th>Autor</th>
                 <th>PVP</th>
                 <th>Preço Feira</th>
                 <th>Quantidade</th>
@@ -248,52 +417,74 @@ function NovaVenda() {
               </tr>
             </thead>
             <tbody>
-            {livros.map((livro, index) => (
-              <tr key={index}>
-                <td>{livro.ISBN}</td>
-                <td>{livro.Título}</td>
-                <td>{livro.Editora}</td>
-                <td>{livro.Autor}</td>
-                <td style={{ textDecoration: 'line-through', color: 'red' }}>R${livro.Valor.toFixed(2)}</td>
-                <td style={{ color: 'green' }}>
-                  R${isSaldo ? livro['Preço Saldo'].toFixed(2) : livro['Valor Feira'].toFixed(2)}
-                </td>
-                <td>
-                  <div className="quantidade-buttons">
-                    <FaMinusCircle onClick={() => handleEditQuantidade(livro, Math.max(1, livro.Quantidade - 1))} />
-                    <span className="quantidade">{livro.Quantidade}</span>
-                    <FaPlusCircle 
-                      onClick={() => handleEditQuantidade(
-                        livro, 
-                        Math.min(
-                          livro.Quantidade + 1, 
-                          isSaldo ? livro['Estoque Saldo'] : livro.Estoque // Usa 'Estoque Saldo' ou 'Estoque' conforme o switch
-                        )
-                      )} 
+              {livros.map((livro, index) => (
+                <tr key={index}>
+                  <td>
+                    <div className={`nova-venda-capa ${imageLoadErrors[livro.ISBN] ? 'sem-imagem' : ''}`}>
+                      {!imageLoadErrors[livro.ISBN] ? (
+                        <img
+                          src={`${apiUrl}/imagem/${livro.ISBN}.jpg`}
+                          alt={`Capa do livro ${livro.Título}`}
+                          onError={() => handleImageError(livro.ISBN)}
+                        />
+                      ) : (
+                        <FaBook />
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="livro-info">
+                      <strong>{livro.Título}</strong>
+                      <span>{livro.Autor}</span>
+                    </div>
+                  </td>
+                  <td>{livro.ISBN}</td>
+                  <td>{livro.Editora}</td>
+                  <td style={{ textDecoration: 'line-through', color: 'red' }}>
+                    R${livro.Valor.toFixed(2)}
+                  </td>
+                  <td style={{ color: 'green' }}>
+                    R${isSaldo ? livro['Preço Saldo'].toFixed(2) : livro['Valor Feira'].toFixed(2)}
+                  </td>
+                  <td>
+                    <div className="quantidade-buttons">
+                      <FaMinusCircle 
+                        onClick={() => handleEditQuantidade(livro, Math.max(1, livro.Quantidade - 1))}
+                      />
+                      <span className="quantidade">{livro.Quantidade}</span>
+                      <FaPlusCircle 
+                        onClick={() => handleEditQuantidade(
+                          livro, 
+                          Math.min(
+                            livro.Quantidade + 1, 
+                            isSaldo ? livro['Estoque Saldo'] : livro.Estoque
+                          )
+                        )}
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <input
+                      className="discount-input"
+                      type="number"
+                      value={livro.Desconto || 0}
+                      onChange={(event) => handleDescontoChange(livro, event)}
                     />
-                  </div>
-                </td>
-                <td>
-                  <input
-                    className="discount-input"
-                    type="number"
-                    value={livro.Desconto || 0}
-                    onChange={(event) => handleDescontoChange(livro, event)}
-                  />
-                </td>
-                <td>R${calcularSubtotal(livro)}</td>
-                <td>
-                  <button className="remove-button" onClick={() => handleRemoveLivro(livro.ISBN)}>
-                    <FaTrashAlt />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>R${calcularSubtotal(livro)}</td>
+                  <td>
+                    <button className="remove-button" onClick={() => handleRemoveLivro(livro.ISBN)}>
+                      <FaTrashAlt />
+                    </button>
+                  </td>
+                </tr>
+              ))}
               <tr className="total-row">
-                <td colSpan="6">Totais:</td>
+                <td colSpan="5">Totais:</td>
                 <td>{totalQuantidade}</td>
                 <td></td>
                 <td>R${totalPrecoDesconto.toFixed(2)}</td>
+                <td></td>
               </tr>
             </tbody>
           </table>
@@ -305,20 +496,41 @@ function NovaVenda() {
               value={formaPagamento}
               onChange={(e) => setFormaPagamento(e.target.value)}
             >
-              <option value="">Forma de Pagamento</option>
+              <option value="Outros">Outros</option>
               <option value="Crédito">Crédito</option>
               <option value="Débito">Débito</option>
               <option value="Pix">Pix</option>
               <option value="Dinheiro">Dinheiro</option>
-              <option value="Outro">Outro</option>
             </select>
           </div>
 
+          <div className="cliente-info">
+            {cliente.nome ? (
+              <div className="cliente-vinculado">
+                <div className="cliente-detalhes">
+                  <h4>Cliente Vinculado</h4>
+                  <p><strong>Nome:</strong> {cliente.nome}</p>
+                  <p><strong>CPF:</strong> {cliente.cpf}</p>
+                  <p><strong>Email:</strong> {cliente.email}</p>
+                  <p><strong>Telefone:</strong> {cliente.telefone}</p>
+                  <p><strong>Endereço:</strong> {cliente.endereco}, {cliente.bairro}</p>
+                  <p><strong>Cidade/UF:</strong> {cliente.cidade}/{cliente.estado}</p>
+                </div>
+                <button className="btn-alterar-cliente" onClick={handleAbrirClienteModal}>
+                  <FaUserPlus /> Alterar Cliente
+                </button>
+              </div>
+            ) : (
+              <button className="btn-add-cliente" onClick={handleAbrirClienteModal}>
+                <FaUserPlus /> Adicionar Cliente
+              </button>
+            )}
+          </div>
 
-          {cliente.nome && <p>Nome do Cliente: {cliente.nome.split(' ')[0]}</p>}
           <div className="buttons-container">
-            {/*<button className="btn-add-cliente" onClick={handleAddCliente}><FaUserPlus /> Adicionar Cliente</button>*
-            */}<button className="btn-registrar-venda" onClick={handleRegistrarVenda}><FaShoppingCart />Registrar Venda</button>
+            <button className="btn-registrar-venda" onClick={handleRegistrarVenda}>
+              <FaShoppingCart /> Registrar Venda
+            </button>
           </div>
         </div>
       )}

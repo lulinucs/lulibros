@@ -58,7 +58,7 @@ function App() {
         <button className={`hide-mobile ${selectedComponent === 'FileUpload' ? 'active' : ''}`} onClick={() => setSelectedComponent('FileUpload')}>Adicionar Estoque</button> 
         <button className={`hide-mobile ${selectedComponent === 'ListarLivro' ? 'active' : ''}`} onClick={() => setSelectedComponent('ListarLivro')}>Pesquisar</button>
         <button className={`hide-mobile ${selectedComponent === 'RelatorioVendas' ? 'active' : ''}`} onClick={() => setSelectedComponent('RelatorioVendas')}>Relatório de Vendas</button>
-        <button className={`hide-mobile ${selectedComponent === 'ListarClientes' ? 'active' : ''}`} onClick={() => setSelectedComponent('Financeiro')}>Financeiro</button>
+        <button className={`hide-mobile ${selectedComponent === 'Financeiro' ? 'active' : ''}`} onClick={() => setSelectedComponent('Financeiro')}>Financeiro</button>
         {/*<button className={`${selectedComponent === 'Connect' ? 'active' : ''}`} onClick={() => setSelectedComponent('Connect')}>Mobile</button>  Adicione o botão para Connect */}
       </nav>
       <main>

@@ -1,20 +1,36 @@
 import React, { useState } from 'react';
 import './RelatorioVendas.css';
 import apiUrl from './config'; // Importe a variável apiUrl
+import { FaCalendarAlt, FaDownload, FaChartBar, FaBook } from 'react-icons/fa';
+import { DateRange } from 'react-date-range';
+import format from 'date-fns/format';
+import addYears from 'date-fns/addYears';
+import { ptBR } from 'date-fns/locale';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 function RelatorioVendas() {
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: addYears(new Date(), -1), // Data inicial: 1 ano atrás
+      endDate: new Date(), // Data final: hoje
+      key: 'selection'
+    }
+  ]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [relatorio, setRelatorio] = useState(null);
   const [relatorioLivrosVendidos, setRelatorioLivrosVendidos] = useState(null);
   const [erro, setErro] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setErro('');
     
     try {
-      let inicioDate = new Date(dataInicio);
-      let fimDate = new Date(dataFim);
+      let inicioDate = new Date(dateRange[0].startDate);
+      let fimDate = new Date(dateRange[0].endDate);
 
       inicioDate.setHours(inicioDate.getHours() + 3);
       fimDate.setHours(fimDate.getHours() + 27);
@@ -25,8 +41,8 @@ function RelatorioVendas() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          dataInicio: inicioDate,
-          dataFim: fimDate,
+          dataInicio: inicioDate.toISOString(),
+          dataFim: fimDate.toISOString(),
         }),
       });
   
@@ -37,17 +53,18 @@ function RelatorioVendas() {
       const data = await response.json();
       setRelatorio(data);
       await handleRelatorioLivrosVendidos();
-      setErro('');
     } catch (error) {
       setRelatorio(null);
       setErro(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRelatorioLivrosVendidos = async () => {
     try {
-      const inicioDate = new Date(dataInicio);
-      const fimDate = new Date(dataFim);
+      const inicioDate = new Date(dateRange[0].startDate);
+      const fimDate = new Date(dateRange[0].endDate);
 
       inicioDate.setHours(inicioDate.getHours() + 3);
       fimDate.setHours(fimDate.getHours() + 27);
@@ -58,8 +75,8 @@ function RelatorioVendas() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          dataInicio: inicioDate,
-          dataFim: fimDate,
+          dataInicio: inicioDate.toISOString(),
+          dataFim: fimDate.toISOString(),
         }),
       });
   
@@ -91,8 +108,8 @@ function RelatorioVendas() {
 
   const handleDownload = async () => {
     try {
-      let inicioDate = new Date(dataInicio);
-      let fimDate = new Date(dataFim);
+      let inicioDate = new Date(dateRange[0].startDate);
+      let fimDate = new Date(dateRange[0].endDate);
 
       inicioDate.setHours(inicioDate.getHours() + 3);
       fimDate.setHours(fimDate.getHours() + 27);
@@ -103,8 +120,8 @@ function RelatorioVendas() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          dataInicio: inicioDate,
-          dataFim: fimDate,
+          dataInicio: inicioDate.toISOString(),
+          dataFim: fimDate.toISOString(),
         }),
       });
 
@@ -153,89 +170,121 @@ function RelatorioVendas() {
 
   return (
     <div className="relatorio-container">
-      <h2>Gerar Relatório de Vendas</h2>
+      <h2>Relatório de Vendas</h2>
+      
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="dataInicio">Data de Início:</label>
-          <input
-            type="date"
-            id="dataInicio"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            required
-          />
+          <label>
+            <FaCalendarAlt /> Período do Relatório
+          </label>
+          <div className="date-range-wrapper">
+            <div 
+              className="date-range-input"
+              onClick={() => setShowDatePicker(!showDatePicker)}
+            >
+              <FaCalendarAlt />
+              {format(dateRange[0].startDate, 'dd/MM/yyyy', { locale: ptBR })} - {format(dateRange[0].endDate, 'dd/MM/yyyy', { locale: ptBR })}
+            </div>
+            {showDatePicker && (
+              <div className="date-range-picker-container">
+                <DateRange
+                  onChange={item => {
+                    const { startDate, endDate } = item.selection;
+                    setDateRange([{
+                      startDate,
+                      endDate: endDate || startDate, // Garante que sempre tem endDate
+                      key: 'selection'
+                    }]);
+                  }}
+                  moveRangeOnFirstSelection={false}
+                  months={1}
+                  ranges={dateRange}
+                  direction="horizontal"
+                  locale={ptBR}
+                  showDateDisplay={false}
+                  showMonthAndYearPickers={true}
+                  showMonthArrow={true}
+                  showPreview={true}
+                  rangeColors={['#2563eb']}
+                  minDate={new Date(2020, 0, 1)}
+                  maxDate={new Date()}
+                />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="dataFim">Data de Fim:</label>
-          <input
-            type="date"
-            id="dataFim"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            required
-          />
+
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+          <button type="submit" className="rel-btn" disabled={isLoading}>
+            <FaChartBar /> {isLoading ? 'Gerando...' : 'Gerar Relatório'}
+          </button>
+          <button type="button" className="rel-btn" onClick={handleDownload}>
+            <FaDownload /> Baixar Relatório
+          </button>
         </div>
-        <button type="submit">Gerar Relatório</button>
-        <button type="button" onClick={handleDownload}>Baixar Relatório</button>
       </form>
   
       {relatorioLivrosVendidos && (
         <div className="tabela-livros-vendidos">
-          <h3>Tabela de Livros Vendidos</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>ISBN</th>
-                <th>Título</th>
-                <th>Editora</th>
-                <th>Valor Vendido</th>
-                <th>Quantidade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {relatorioLivrosVendidos.map(livro => (
-                <tr key={livro.ISBN}>
-                  <td>{livro.ISBN}</td>
-                  <td>{livro.Título}</td>
-                  <td>{livro.Editora}</td>
-                  <td>R${livro['Valor Vendido'].toFixed(2)}</td>
-                  <td>{livro.Quantidade}</td>
+          <h3><FaBook /> Livros Vendidos</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>ISBN</th>
+                  <th>Título</th>
+                  <th>Editora</th>
+                  <th>Valor Vendido</th>
+                  <th>Quantidade</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {relatorioLivrosVendidos.map(livro => (
+                  <tr key={livro.ISBN}>
+                    <td>{livro.ISBN}</td>
+                    <td>{livro.Título}</td>
+                    <td>{livro.Editora}</td>
+                    <td>R${livro['Valor Vendido'].toFixed(2)}</td>
+                    <td>{livro.Quantidade}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
   
       {relatorio && (
         <div className="relatorio">
-          <h3>Resumo de Vendas por Forma de Pagamento</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Forma de Pagamento</th>
-                <th>Total de Vendas</th>
-                <th>Total de Produtos Vendidos</th>
-                <th>Valor Total de Vendas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {relatorio.map((item, index) => (
-                <tr key={index}>
-                  <td>{item._id || 'Não especificado'}</td>
-                  <td>{item.totalVendas}</td>
-                  <td>{item.totalProdutosVendidos}</td>
-                  <td>R${item.valorTotalVendas.toFixed(2)}</td>
+          <h3><FaChartBar /> Resumo por Forma de Pagamento</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Forma de Pagamento</th>
+                  <th>Total de Vendas</th>
+                  <th>Total de Produtos</th>
+                  <th>Valor Total</th>
                 </tr>
-              ))}
-              <tr>
-                <td><strong>Total Geral</strong></td>
-                <td><strong>{totals.totalVendas}</strong></td>
-                <td><strong>{totals.totalProdutosVendidos}</strong></td>
-                <td><strong>R${totals.valorTotalVendas.toFixed(2)}</strong></td>
-              </tr>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {relatorio.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item._id || 'Não especificado'}</td>
+                    <td>{item.totalVendas}</td>
+                    <td>{item.totalProdutosVendidos}</td>
+                    <td>R${item.valorTotalVendas.toFixed(2)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td><strong>Total Geral</strong></td>
+                  <td><strong>{totals.totalVendas}</strong></td>
+                  <td><strong>{totals.totalProdutosVendidos}</strong></td>
+                  <td><strong>R${totals.valorTotalVendas.toFixed(2)}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
   

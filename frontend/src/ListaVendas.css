@@ -1,252 +1,1014 @@
 /* ListaVendas.css */
 
-/* ListaVendas.css */
+.lv-ListaVendas {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
 
-.ListaVendas {
-  max-width: 90%;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.header h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.data-seletor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+}
+
+.data-seletor:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.data-seletor input {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: #1e293b;
+  outline: none;
+  width: 150px;
 }
 
 .vendas-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 .venda-card {
-  width: calc(33.33% - 20px); /* Definindo 3 colunas com espaçamento entre elas */
-  margin-bottom: 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  height: 100%;
+}
+
+.venda-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .card-content {
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
 }
 
-.card-content:hover {
-  transform: translateY(-5px);
-}
-
-.venda:hover {
-  transform: translateY(-5px);
+.venda-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .timestamp {
-  font-size: 18px;
-  text-align: center;
-  margin-bottom: 10px;
+  color: #666;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .valor-final {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
 }
 
-.livro-card {
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  transition: transform 0.3s ease;
+.venda-detalhes {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.isbn {
-  font-size: 12px;
-  font-weight: bold;
+.forma-pagamento, .tipo-venda {
+  background: #f8f9fa;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   color: #666;
-  margin-right: 10px;
+  white-space: nowrap;
 }
 
-.titulo {
-  flex-grow: 1; /* Ocupa o máximo de espaço disponível */
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.valor {
-  color: #009732; /* Verde */
-  font-size: 16px;
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.quantidade {
-  font-size: 24px;
-  font-weight: bold;
-  margin-right: 25px;
-}
-
-
-/* Modal CSS */
+/* Modal */
 .modal {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
 }
 
 .modal-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  max-width: 90%;
-  max-height: 90%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
   overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal de Cliente */
+.modal.cliente-modal {
+  z-index: 1100;
+}
+
+.modal.cliente-modal .modal-content {
+  max-width: 600px;
+  padding: 2rem;
+}
+
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  cursor: pointer;
+  color: #666;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+
+.close:hover {
+  color: #333;
+}
+
+.venda-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.venda-header h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.venda-info-header {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.livros-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+  padding-right: 0.5rem;
+}
+
+.lv-livro-card-horizontal {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1rem;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.lv-livro-card-horizontal:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+.lv-livro-capa-area {
+  width: 60px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lv-livro-capa-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.lv-livro-capa-fallback {
+  color: #a3a3a3;
+  font-size: 2rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lv-livro-info-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.lv-livro-titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lv-livro-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.lv-livro-autor {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.lv-livro-editora {
+  color: #64748b;
+}
+
+.lv-livro-isbn {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+.lv-livro-qtd-valor-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 80px;
+}
+
+.lv-livro-qtd {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-radius: 6px;
+  padding: 0.2em 0.8em;
+}
+
+.lv-livro-valor {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border-radius: 6px;
+  padding: 0.2em 0.8em;
 }
 
 .total-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1.2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 2rem;
 }
 
 .total-label {
-  margin-left: 15px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.valor-total-modal {
-  margin-right: 20px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #009732; /* Verde */
-}
-
-.close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-size: 24px;
-  color: #aaa;
-}
-
-.close:hover {
+  font-size: 1.1rem;
   color: #666;
 }
 
-.modal-content h2 {
-  margin-bottom: 20px;
+.valor-total-modal {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.cliente-info {
+  margin-bottom: 2rem;
+  padding-right: 0.5rem;
 }
 
-th,
-td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-/* CSS atualizado */
-
-.card {
-  background-color: #f9f9f9;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+.cliente-vinculado {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem 2rem 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  max-width: 600px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  width: 10; 
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.info-column {
-  padding-right: 20px;
+.cliente-titulo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
 }
 
-.info-column p {
-  margin-bottom: 10px;
+.cliente-detalhes-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.5rem 2rem;
+  align-items: center;
 }
 
-.card input{
-  margin-bottom: 10px;
-  padding: 8px 12px;
+.cliente-label {
+  color: #666;
+  font-weight: 500;
+  text-align: right;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.cliente-valor {
+  color: #222;
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+.cliente-botao-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.lv-botoes-acoes {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn-estornar, .btn-fechar, .btn-add-cliente, .btn-alterar-cliente {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
   border: none;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
-}
-
-.modal-content .fechar-button,
-.modal-content .estornar-button,
-.modal-content .adicionar-cliente-button {
-  background-color: transparent; /* Define a cor de fundo como transparente */
-  color: #000; /* Define a cor do texto */
-  border: 1px solid #000; /* Adiciona uma borda */
-  padding: 14px 20px;
-  margin: 8px 0;
-  border-radius: 4px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-estornar {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  color: white;
+}
+
+.btn-estornar:hover {
+  background: linear-gradient(90deg, #b91c1c, #dc2626);
+  transform: translateY(-1px);
+}
+
+.btn-fechar {
+  background: linear-gradient(90deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.btn-fechar:hover {
+  background: linear-gradient(90deg, #5a6268, #4a5054);
+  transform: translateY(-1px);
+}
+
+.btn-add-cliente, .btn-alterar-cliente {
+  background: linear-gradient(90deg, #047857, #10b981);
+  color: white;
+}
+
+.btn-add-cliente:hover, .btn-alterar-cliente:hover {
+  background: linear-gradient(90deg, #065f46, #059669);
+  transform: translateY(-1px);
+}
+
+/* Isolar estilos de input do formulário de cliente */
+.lv-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.lv-form input {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
   width: 100%;
-  font-size: 16px;
-  transition: background-color 0.3s; /* Adiciona uma transição suave para a mudança de cor de fundo */
 }
-
-.modal-content .fechar-button:hover{
-  background-color: #ff5c5c; /* Vermelho para fechar */
-  color: #fff; /* Texto branco */
-}
-
-.modal-content .estornar-button:hover {
-  background-color: #ffd700; /* Amarelo para estornar venda */
-  color: #fff; /* Texto branco */
-}
-
-.modal-content .adicionar-cliente-button:hover {
-  background-color: #009732; /* Amarelo para estornar venda */
-  color: #fff; /* Texto branco */
-}
-
-.data-seletor {
-  margin-bottom: 20px;
-}
-
-.data-seletor label {
-  font-size: 18px;
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.data-seletor input[type="date"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  transition: border-color 0.3s;
-  font-size: 16px;
-}
-
-.data-seletor input[type="date"]:focus {
+.lv-form input:focus {
+  border-color: #007bff;
   outline: none;
-  border-color: #6c63ff;
 }
 
-.date {
-  margin-right: 0px;
+.botoes-cliente {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-registrar-venda, .btn-cancelar-cliente {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-registrar-venda {
+  background: #28a745;
+  color: white;
+}
+
+.btn-registrar-venda:hover {
+  background: #218838;
+}
+
+.btn-cancelar-cliente {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancelar-cliente:hover {
+  background: #5a6268;
+}
+
+.spinner {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .lv-ListaVendas {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .data-seletor {
+    width: 100%;
+  }
+
+  .data-seletor input {
+    width: 100%;
+  }
+
+  .vendas-container {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .botoes-acoes, .botoes-cliente {
+    flex-direction: column;
+  }
+
+  .btn-estornar, .btn-fechar, .btn-add-cliente, .btn-alterar-cliente,
+  .btn-registrar-venda, .btn-cancelar-cliente {
+    width: 100%;
+    justify-content: center;
+}
+
+  .lv-livro-card-horizontal {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: unset;
+  }
+
+  .lv-livro-capa-area {
+  width: 100%;
+    height: 140px;
+    margin-bottom: 0.5rem;
+  }
+
+  .lv-livro-qtd-valor-area {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.2rem;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .cliente-vinculado {
+    padding: 1rem;
+    max-width: 100%;
+  }
+  .cliente-detalhes-grid {
+    grid-template-columns: 1fr;
+    gap: 0.3rem 0;
+  }
+  .cliente-label {
+  text-align: left;
+    margin-bottom: 0.1rem;
+  }
+  .cliente-botao-container {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 700px) {
+  .lv-botoes-acoes {
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: stretch;
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.4em 1em;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.badge-novo { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
+.badge-saldo { background: linear-gradient(90deg, #047857, #10b981); }
+.badge-pix { background: linear-gradient(90deg, #047857, #34d399); }
+.badge-credito { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+.badge-debito { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.badge-dinheiro { background: linear-gradient(90deg, #d97706, #fde68a); color: #78350f; }
+.badge-zigpay { background: linear-gradient(90deg, #0369a1, #38bdf8); }
+.badge-outro { background: linear-gradient(90deg, #475569, #94a3b8); color: white; }
+
+.data-badge, .data-badge-modal {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 1.02rem;
+  border-radius: 8px;
+  padding: 0.25em 1em 0.25em 0.8em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 0.5em;
+  letter-spacing: 0.01em;
+  gap: 0.3em;
+}
+.data-badge-modal {
+  font-size: 1.12rem;
+  background: linear-gradient(90deg, #e0e7ff 60%, #f0fdfa 100%);
+  color: #0e7490;
+  margin-bottom: 1em;
+}
+
+.total-container-elegante {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  background: none;
+  border-radius: 0;
+  margin-bottom: 2rem;
+  margin-top: 1.5rem;
+}
+.total-label {
+  font-size: 1.15rem;
+  color: #888;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.valor-total-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #059669 60%, #2563eb 100%);
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.35em 1.6em;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.08);
+  letter-spacing: 0.02em;
+  margin-left: 0.5em;
+}
+
+.cliente-vinculado.clean {
+  background: #f6f8fa;
+  border-radius: 10px;
+  box-shadow: none;
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+  margin: 0 auto;
+  max-width: 600px;
+  border: 1px solid #e5e7eb;
+}
+
+.cliente-vinculado.clean .cliente-titulo {
+  color: #2563eb;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: none;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0;
+}
+
+@media (max-width: 700px) {
+  .total-container-elegante {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+  }
+  .valor-total-badge {
+    font-size: 1.2rem;
+    padding: 0.35em 1em;
+  }
+  .data-badge-modal {
+    font-size: 1rem;
+  }
+  .cliente-vinculado.clean {
+    padding: 0.7rem 0.5rem 0.5rem 0.5rem;
+    max-width: 100%;
+  }
+}
+
+.lv-livros-scroll-modal {
+  max-height: 340px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding-right: 0.5rem;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+.lv-livro-card-horizontal,
+.lv-livro-card-compact {
+  padding: 0.5rem 0.7rem !important;
+  gap: 0.5rem !important;
+  min-height: 60px !important;
+  border-radius: 8px !important;
+}
+.lv-livros-scroll-modal .lv-livro-card-horizontal:not(:last-child) {
+  margin-bottom: 0.3rem;
+}
+
+.lv-data-badge, .lv-data-badge-modal {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  padding: 0.4em 0.8em;
+  transition: all 0.2s ease;
+}
+.lv-data-badge-modal {
+  font-size: 1.05rem;
+  background: #e0e7ff;
+  color: #0e7490;
+  margin-bottom: 0.5em;
+}
+
+.lv-total-container-elegante, .lv-total-container-elegante.lv-compact {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  background: none;
+  border-radius: 0;
+  margin-bottom: 1rem;
+  margin-top: 0.7rem;
+}
+.lv-total-label {
+  font-size: 1rem;
+  color: #888;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.lv-valor-total-badge, .lv-valor-total-badge.lv-compact {
+  display: inline-block;
+  background: #059669;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15em 1em;
+  box-shadow: none;
+  margin-left: 0.5em;
+}
+
+.lv-cliente-vinculado.lv-ultra-minimal.lv-cliente-simples {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 0.7rem 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.lv-cliente-nome {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lv-cliente-info-mini {
+  font-size: 0.92rem;
+  color: #888;
+  font-weight: 400;
+  margin-bottom: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+  .lv-livros-scroll-modal {
+    max-height: 140px;
+  }
+  .lv-livro-card-horizontal,
+  .lv-livro-card-compact {
+    padding: 0.3rem 0.3rem !important;
+    gap: 0.3rem !important;
+    min-height: 40px !important;
+}
+  .lv-valor-total-badge, .lv-valor-total-badge.lv-compact {
+    font-size: 0.95rem;
+    padding: 0.1em 0.7em;
+  }
+}
+
+.lv-btn-fechar-vermelho {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+.lv-btn-fechar-vermelho:hover {
+  background: #b91c1c !important;
+}
+
+.lv-btn-estornar.lv-btn-estornar-amarelo {
+  background: #fbbf24 !important;
+  color: #78350f !important;
+}
+.lv-btn-estornar.lv-btn-estornar-amarelo:hover {
+  background: #f59e42 !important;
+  color: #78350f !important;
+}
+
+.lv-btn-alterar-cliente-verde, .lv-btn-add-cliente-verde {
+  background: #22c55e !important;
+  color: #fff !important;
+}
+.lv-btn-alterar-cliente-verde:hover, .lv-btn-add-cliente-verde:hover {
+  background: #16a34a !important;
+}
+
+.lv-btn-add-cliente, .lv-btn-alterar-cliente {
+  font-size: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: none;
+  margin: 0;
+}
+
+.lv-btn-estornar, .lv-btn-fechar {
+  font-size: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: none;
+  margin: 0;
+}
+
+.modal-content .lv-btn-estornar.lv-btn-estornar-amarelo {
+  background: #fbbf24 !important;
+  color: #78350f !important;
+}
+.modal-content .lv-btn-estornar.lv-btn-estornar-amarelo:hover {
+  background: #f59e42 !important;
+  color: #78350f !important;
+}
+
+.modal-content .lv-btn-fechar.lv-btn-fechar-vermelho {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+.modal-content .lv-btn-fechar.lv-btn-fechar-vermelho:hover {
+  background: #b91c1c !important;
+}
+
+.modal-content .lv-btn-alterar-cliente-verde,
+.modal-content .lv-btn-add-cliente-verde {
+  background: #22c55e !important;
+  color: #fff !important;
+}
+.modal-content .lv-btn-alterar-cliente-verde:hover,
+.modal-content .lv-btn-add-cliente-verde:hover {
+  background: #16a34a !important;
+}
+
+.lv-lista-vendas {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+}
+.lv-lista-vendas-header {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.2fr 1fr;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+  padding: 1rem 2rem;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+.lv-lista-vendas-th {
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+.lv-lista-vendas-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.2fr 1fr;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+.lv-lista-vendas-row:hover {
+  background: rgba(241, 245, 249, 0.5);
+  transform: translateX(4px);
+}
+.lv-lista-vendas-td {
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.lv-lista-vendas-cliente {
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.lv-lista-vendas-cliente:hover {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+.lv-lista-vendas-cliente-vazio {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-style: italic;
+  padding: 0.3rem 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .lv-lista-vendas-header, .lv-lista-vendas-row {
+    grid-template-columns: 1.5fr 1fr 1.2fr 1fr;
+    padding: 0.7rem 0.7rem;
+    font-size: 0.98rem;
+  }
+}
+@media (max-width: 600px) {
+  .lv-lista-vendas-header, .lv-lista-vendas-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    row-gap: 0.2rem;
+    padding: 0.5rem 0.2rem;
+  }
+  .lv-lista-vendas-th:nth-child(n+3),
+  .lv-lista-vendas-td:nth-child(n+3) {
+    grid-column: span 2;
+  }
+  .lv-lista-vendas-row {
+    font-size: 0.93rem;
+  }
+}
+
+.lv-input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  background: #f8fafc;
+  color: #1e293b;
+  transition: border 0.2s, box-shadow 0.2s;
+  display: block;
+  margin-bottom: 0.7rem;
+}
+.lv-input:focus {
+  border: 1.5px solid #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 2px #2563eb22;
 }

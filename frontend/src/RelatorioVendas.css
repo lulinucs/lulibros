@@ -1,61 +1,361 @@
 .relatorio-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: #f8f9fa;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.relatorio-container h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(90deg, #2563eb, #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
+  position: relative;
 }
 
-label {
+.form-group label {
   display: block;
-  margin-bottom: 5px;
-  color: #495057;
+  margin-bottom: 0.5rem;
+  color: #475569;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
-input[type="date"] {
-  width: 90%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
-  background-color: #fff;
+.date-range-wrapper {
+  position: relative;
+  width: 100%;
 }
 
-button {
-  background-color: #007bff;
+.date-range-input {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  font-size: 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1e293b;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-range-input:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.date-range-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: #fff;
+}
+
+/* Estilos do DateRangePicker */
+.date-range-picker-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 1.25rem;
+  margin-top: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+/* Sobrescrever estilos padrão do DateRangePicker */
+.rdrDateRangePickerWrapper {
+  background: white;
+  border-radius: 12px;
+  font-family: inherit;
+}
+
+.rdrCalendarWrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+
+.rdrDateDisplayWrapper {
+  display: none;
+}
+
+.rdrMonthAndYearWrapper {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.rdrMonthAndYearPickers select {
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rdrMonthAndYearPickers select:hover {
+  border-color: #94a3b8;
+}
+
+.rdrMonthAndYearPickers select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.rdrDayToday .rdrDayNumber span:after {
+  background: #2563eb;
+}
+
+.rdrStartEdge,
+.rdrEndEdge,
+.rdrInRange {
+  background: #2563eb !important;
+  color: white !important;
+}
+
+.rdrDayHovered {
+  border-color: #2563eb !important;
+}
+
+.rdrDay {
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.rdrDayNumber {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.rdrDayToday .rdrDayNumber span {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.rdrDaySelected .rdrDayNumber span {
+  color: white;
+  font-weight: 600;
+}
+
+.rdrDayDisabled {
+  color: #cbd5e1 !important;
+}
+
+.rdrDayDisabled .rdrDayNumber span {
+  color: #cbd5e1 !important;
+}
+
+.rdrDayPassive .rdrDayNumber span {
+  color: #94a3b8;
+}
+
+.rdrDayStartOfMonth .rdrDayNumber span {
+  color: #1e293b;
+}
+
+.rdrDayEndOfMonth .rdrDayNumber span {
+  color: #1e293b;
+}
+
+.rdrDayStartOfWeek .rdrDayNumber span {
+  color: #1e293b;
+}
+
+.rdrDayEndOfWeek .rdrDayNumber span {
+  color: #1e293b;
+}
+
+.rdrDayStartPreview,
+.rdrDayInPreview,
+.rdrDayEndPreview {
+  border-color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.rdrDayStartPreview .rdrDayNumber span,
+.rdrDayInPreview .rdrDayNumber span,
+.rdrDayEndPreview .rdrDayNumber span {
+  color: #2563eb;
+}
+
+.rdrDayStartOfMonth .rdrDayNumber span,
+.rdrDayEndOfMonth .rdrDayNumber span,
+.rdrDayStartOfWeek .rdrDayNumber span,
+.rdrDayEndOfWeek .rdrDayNumber span {
+  color: #1e293b;
+}
+
+.rdrDayStartOfMonth.rdrDayToday .rdrDayNumber span,
+.rdrDayEndOfMonth.rdrDayToday .rdrDayNumber span,
+.rdrDayStartOfWeek.rdrDayToday .rdrDayNumber span,
+.rdrDayEndOfWeek.rdrDayToday .rdrDayNumber span {
+  color: #2563eb;
+}
+
+.rdrDayStartOfMonth.rdrDaySelected .rdrDayNumber span,
+.rdrDayEndOfMonth.rdrDaySelected .rdrDayNumber span,
+.rdrDayStartOfWeek.rdrDaySelected .rdrDayNumber span,
+.rdrDayEndOfWeek.rdrDaySelected .rdrDayNumber span {
+  color: white;
+}
+
+.rel-btn {
+  background: linear-gradient(90deg, #2563eb, #0ea5e9);
   color: #fff;
   border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
+  border-radius: 10px;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  margin: 10px;
-  transition: background-color 0.3s ease;
+  margin: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-button:hover {
-  background-color: #0056b3;
+.rel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+}
+
+.rel-btn:active {
+  transform: translateY(0);
 }
 
 .relatorio {
-  margin-top: 30px;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 2.5rem;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .relatorio h3 {
-  margin-bottom: 15px;
-  color: #343a40;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1rem 0;
+}
+
+th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.95rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+  padding: 1rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.95rem;
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+tr:last-child td {
+  border-bottom: none;
+  font-weight: 600;
+  background: #f1f5f9;
 }
 
 .erro {
-  color: red;
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-weight: 500;
+  text-align: center;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.tabela-livros-vendidos {
+  margin-top: 2.5rem;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  animation: fadeIn 0.5s ease;
+}
+
+.tabela-livros-vendidos h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .relatorio-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .relatorio, .tabela-livros-vendidos {
+    padding: 1rem;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .rel-btn {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
 }

@@ -6,34 +6,27 @@ const fileUpload = require('express-fileupload');
 const xlsx = require('xlsx');
 const cors = require('cors'); // Importe o pacote cors
 const bodyParser = require('body-parser');
-const https = require('https');
-const fs = require('fs');
+const path = require('path'); // Adiciona o módulo path
+const fs = require('fs'); // Adiciona o módulo fs
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(cors());
 
+// Configurar pasta de imagens pública
+const imagesDir = path.join(__dirname, 'public', 'images');
+app.use('/images', express.static(imagesDir));
+
 const { Cliente, Livro, Venda, Caixa } = require('./models');
 
-// Caminho para os certificados
-const CERT_PATH = './frontend/.cert/cert.pem';
-const KEY_PATH = './frontend/.cert/key.pem';
-
-// Carregar os certificados
-const privateKey = fs.readFileSync(KEY_PATH, 'utf8');
-const certificate = fs.readFileSync(CERT_PATH, 'utf8');
-
-// Configurar HTTPS
-const credentials = { key: privateKey, cert: certificate };
-
 const DB_PASSWORD = 'v1d4l0k4'; // Substitua pela senha real do banco de dados
-const DB_NAME = 'lulifeira'; // Nome do seu banco de dados no cluster remoto
-const DB_URI = `mongodb+srv://lucasfgnu:${encodeURIComponent(DB_PASSWORD)}@cluster0.lecvn.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
+const DB_NAME = 'lulifeira'; // Nome do seu banco de dados local
+const DB_URI = `mongodb://localhost:27017/${DB_NAME}`;
 
-mongoose.connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(DB_URI)
   .then(() => {
-    console.log('Conectado ao MongoDB remoto');
+    console.log('Conectado ao MongoDB local');
     
     // Definir um schema simples (opcional)
     const testSchema = new mongoose.Schema({
@@ -56,14 +49,11 @@ mongoose.connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       });
   })
   .catch((error) => {
-    console.error('Erro ao conectar ao MongoDB remoto:', error);
+    console.error('Erro ao conectar ao MongoDB local:', error);
   });
-
 
 // Middleware para lidar com o upload de arquivos
 app.use(fileUpload());
-
-
 
 // Função para agrupar itens duplicados com mesmo ISBN e mesmo valor de venda
 function agruparLivrosVendidos(livrosVendidos) {
@@ -88,111 +78,202 @@ function agruparLivrosVendidos(livrosVendidos) {
   return livrosVendidosAgrupados;
 }
 
-
-
-
 app.post('/adicionar-estoque', async (req, res) => {
+  console.log('Iniciando adição de estoque...');
+  
   if (!req.files || !req.files.estoque) {
+    console.log('Erro: Nenhum arquivo enviado');
     return res.status(400).json({ error: 'Nenhum arquivo enviado' });
   }
 
   const estoqueFile = req.files.estoque;
+  console.log('Arquivo recebido:', {
+    name: estoqueFile.name,
+    mimetype: estoqueFile.mimetype,
+    size: estoqueFile.size
+  });
 
   // Verifica se o arquivo é do tipo Excel
-  if (!estoqueFile.mimetype.includes('excel')) {
+  const excelMimeTypes = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel' // .xls
+  ];
+  
+  if (!excelMimeTypes.includes(estoqueFile.mimetype)) {
+    console.log('Erro: Arquivo não é Excel. Mimetype:', estoqueFile.mimetype);
     return res.status(400).json({ error: 'O arquivo enviado não é um arquivo Excel' });
   }
 
   try {
     // Lê o arquivo Excel
+    console.log('Lendo arquivo Excel...');
     const workbook = xlsx.read(estoqueFile.data, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(sheet);
+    console.log('Dados lidos do Excel:', data);
 
     for (const item of data) {
-      // Mapeia os campos do novo cabeçalho
+      console.log('Processando item:', item);
+      
+      // Mapeia os campos do novo cabeçalho na sequência correta
       const livroData = {
         ISBN: item.ISBN,
         Editora: item.EDITORA,
         Título: item.TÍTULO,
         Autor: item.AUTOR,
+        Valor: item.VALOR,
         Estoque: item.ESTOQUE,
-        Valor: item['PREÇO DE'],
-        'Valor Feira': item['PREÇO POR'],
+        Categoria: item.CATEGORIA,
+        'Valor Feira': item['VALOR FEIRA'],
         'Estoque Saldo': item['ESTOQUE SALDO'],
         'Preço Saldo': item['PREÇO SALDO']
       };
+      console.log('Dados mapeados:', livroData);
 
       // Verifica se o ISBN já está cadastrado no banco de dados
       const existingLivro = await Livro.findOne({ ISBN: livroData.ISBN });
+      console.log('Livro existente:', existingLivro);
 
       if (existingLivro) {
+        console.log('Atualizando livro existente...');
         // Se o ISBN já existir, adicione o estoque e o estoque saldo ao existente
         existingLivro.Estoque += livroData.Estoque;
         existingLivro['Estoque Saldo'] += livroData['Estoque Saldo'];
         await existingLivro.save();
+        console.log('Livro atualizado:', existingLivro);
       } else {
+        console.log('Criando novo livro...');
         // Se o ISBN não existir, crie um novo documento no banco de dados
-        await Livro.create(livroData);
+        const novoLivro = await Livro.create(livroData);
+        console.log('Novo livro criado:', novoLivro);
       }
     }
 
+    console.log('Processo finalizado com sucesso');
     res.status(200).json({ message: 'Dados do estoque cadastrados com sucesso' });
   } catch (error) {
-    console.error('Erro ao cadastrar dados do estoque:', error);
+    console.error('Erro detalhado ao cadastrar dados do estoque:', error);
+    console.error('Stack trace:', error.stack);
     res.status(500).json({ error: 'Erro ao cadastrar dados do estoque' });
   }
 });
 
-
 app.post('/substituir-estoque', (req, res) => {
+  console.log('Iniciando substituição de estoque...');
+  
   if (!req.files || !req.files.estoque) {
+    console.log('Erro: Nenhum arquivo enviado');
     return res.status(400).json({ error: 'Nenhum arquivo enviado' });
   }
 
   const estoqueFile = req.files.estoque;
+  console.log('Arquivo recebido:', {
+    name: estoqueFile.name,
+    mimetype: estoqueFile.mimetype,
+    size: estoqueFile.size
+  });
 
   // Verifica se o arquivo é do tipo Excel
-  if (!estoqueFile.mimetype.includes('excel')) {
+  const excelMimeTypes = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel' // .xls
+  ];
+  
+  if (!excelMimeTypes.includes(estoqueFile.mimetype)) {
+    console.log('Erro: Arquivo não é Excel. Mimetype:', estoqueFile.mimetype);
     return res.status(400).json({ error: 'O arquivo enviado não é um arquivo Excel' });
   }
 
-  // Lê o arquivo Excel
-  const workbook = xlsx.read(estoqueFile.data, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const data = xlsx.utils.sheet_to_json(sheet);
+  try {
+    // Lê o arquivo Excel
+    console.log('Lendo arquivo Excel...');
+    const workbook = xlsx.read(estoqueFile.data, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(sheet);
+    console.log('Dados lidos do Excel:', data);
 
-  // Mapeia os dados para o novo formato
-  const mappedData = data.map(item => ({
-    ISBN: item.ISBN,
-    Editora: item.EDITORA,
-    Título: item.TÍTULO,
-    Autor: item.AUTOR,
-    Estoque: item.ESTOQUE,
-    Valor: item['PREÇO DE'],
-    'Valor Feira': item['PREÇO POR'],
-    'Estoque Saldo': item['ESTOQUE SALDO'],
-    'Preço Saldo': item['PREÇO SALDO']
-  }));
+    // Mapeia os dados para o novo formato na sequência correta
+    const mappedData = data.map(item => ({
+      ISBN: item.ISBN,
+      Editora: item.EDITORA,
+      Título: item.TÍTULO,
+      Autor: item.AUTOR,
+      Valor: item.VALOR,
+      Estoque: item.ESTOQUE,
+      Categoria: item.CATEGORIA,
+      'Valor Feira': item['VALOR FEIRA'],
+      'Estoque Saldo': item['ESTOQUE SALDO'],
+      'Preço Saldo': item['PREÇO SALDO']
+    }));
+    console.log('Dados mapeados:', mappedData);
 
-  // Substitui o conteúdo do estoque pelo novo conteúdo
-  Livro.deleteMany({})
-    .then(() => {
-      Livro.insertMany(mappedData)
-        .then(() => {
-          res.status(200).json({ message: 'Estoque substituído com sucesso' });
-        })
-        .catch((error) => {
-          console.error('Erro ao cadastrar novo estoque:', error);
-          res.status(500).json({ error: 'Erro ao cadastrar novo estoque' });
-        });
-    })
-    .catch((error) => {
-      console.error('Erro ao excluir estoque existente:', error);
-      res.status(500).json({ error: 'Erro ao excluir estoque existente' });
-    });
+    // Substitui o conteúdo do estoque pelo novo conteúdo
+    console.log('Excluindo estoque existente...');
+    Livro.deleteMany({})
+      .then(() => {
+        console.log('Inserindo novo estoque...');
+        Livro.insertMany(mappedData)
+          .then(() => {
+            console.log('Estoque substituído com sucesso');
+            res.status(200).json({ message: 'Estoque substituído com sucesso' });
+          })
+          .catch((error) => {
+            console.error('Erro ao cadastrar novo estoque:', error);
+            res.status(500).json({ error: 'Erro ao cadastrar novo estoque' });
+          });
+      })
+      .catch((error) => {
+        console.error('Erro ao excluir estoque existente:', error);
+        res.status(500).json({ error: 'Erro ao excluir estoque existente' });
+      });
+  } catch (error) {
+    console.error('Erro detalhado ao substituir estoque:', error);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ error: 'Erro ao substituir estoque' });
+  }
+});
+
+// Rota para baixar o modelo de Excel
+app.get('/modelo-estoque', (req, res) => {
+  try {
+    // Cria um workbook novo
+    const workbook = xlsx.utils.book_new();
+    
+    // Dados de exemplo com a sequência correta
+    const dados = [{
+      ISBN: '9788535909555',
+      EDITORA: 'Editora Exemplo',
+      TÍTULO: 'Livro de Exemplo',
+      AUTOR: 'Autor Exemplo',
+      VALOR: 50.00,
+      ESTOQUE: 10,
+      CATEGORIA: 'Ficção',
+      'VALOR FEIRA': 35.00,
+      'ESTOQUE SALDO': 5,
+      'PREÇO SALDO': 25.00
+    }];
+
+    // Cria uma worksheet com os dados
+    const worksheet = xlsx.utils.json_to_sheet(dados);
+
+    // Adiciona a worksheet ao workbook
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Estoque');
+
+    // Gera o buffer do arquivo
+    const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    // Configura os headers para download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=modelo-estoque.xlsx');
+
+    // Envia o arquivo
+    res.send(buffer);
+  } catch (error) {
+    console.error('Erro ao gerar modelo de estoque:', error);
+    res.status(500).json({ error: 'Erro ao gerar modelo de estoque' });
+  }
 });
 
 // Rota para obter dados do livro por ISBN
@@ -220,8 +301,13 @@ app.post('/salvarcliente', async (req, res) => {
       // Extrair os dados do corpo da solicitação
       const { nome, cpf, email, telefone, cep, endereco, bairro, cidade, estado } = req.body;
   
-      // Verificar se já existe um cliente com o CPF fornecido
-      const clienteExistente = await Cliente.findOne({ cpf });
+      // Verificar se já existe um cliente com o CPF OU email fornecido
+      const clienteExistente = await Cliente.findOne({
+        $or: [
+          { cpf },
+          { email }
+        ]
+      });
   
       // Se o cliente já existir, retornar o objeto cliente
       if (clienteExistente) {
@@ -314,7 +400,6 @@ app.post('/estornar-venda/:id', async (req, res) => {
     res.status(500).json({ mensagem: 'Erro ao estornar a venda' });
   }
 });
-
 
 app.get('/vendas', async (req, res) => {
     try {
@@ -429,33 +514,58 @@ app.get('/clientes', async (req, res) => {
   }
 });
 
+app.get('/cliente/:cpf', async (req, res) => {
+  try {
+    const { cpf } = req.params;
+    const cliente = await Cliente.findOne({ cpf });
+    
+    if (!cliente) {
+      return res.status(404).json({ mensagem: 'Cliente não encontrado' });
+    }
+    
+    res.status(200).json(cliente);
+  } catch (error) {
+    console.error('Erro ao buscar cliente:', error);
+    res.status(500).json({ mensagem: 'Erro ao buscar cliente' });
+  }
+});
+
 app.get('/livros', async (req, res) => {
-  const page = parseInt(req.query.page) || 1; // Obtém o número da página da query string, se não especificado, assume 1
-  const limit = 100; // Define o número de livros por página
-  const query = req.query.q; // Obtém a consulta de pesquisa da query string
+  const page = parseInt(req.query.page) || 1;
+  const limit = 100;
+  const query = req.query.q;
+  const categoria = req.query.categoria;
 
   try {
-    let filter = {}; // Define um filtro vazio inicial
+    let filter = {};
 
-    if (query) {
-      // Se houver uma consulta de pesquisa, cria um filtro para pesquisar em título, autor, editora e ISBN
-      filter = {
-        $or: [
-          { 'Título': { $regex: query, $options: 'i' } }, // Pesquisa insensível a maiúsculas e minúsculas
-          { 'Autor': { $regex: query, $options: 'i' } },
-          { 'Editora': { $regex: query, $options: 'i' } },
-          { 'ISBN': { $regex: query, $options: 'i' } }
-        ]
-      };
+    // Construir o filtro combinando busca e categoria
+    if (query || categoria) {
+      filter.$and = [];
+      
+      if (query) {
+        filter.$and.push({
+          $or: [
+            { 'Título': { $regex: query, $options: 'i' } },
+            { 'Autor': { $regex: query, $options: 'i' } },
+            { 'Editora': { $regex: query, $options: 'i' } },
+            { 'ISBN': { $regex: query, $options: 'i' } }
+          ]
+        });
+      }
+      
+      if (categoria) {
+        filter.$and.push({ 'Categoria': categoria });
+      }
     }
 
-    const count = await Livro.countDocuments(filter); // Obtém o número total de livros correspondentes ao filtro
-    const totalPages = Math.ceil(count / limit); // Calcula o número total de páginas
-    const skip = (page - 1) * limit; // Calcula o número de documentos a pular
+    const count = await Livro.countDocuments(filter);
+    const totalPages = Math.ceil(count / limit);
+    const skip = (page - 1) * limit;
 
-    const livros = await Livro.find(filter).skip(skip).limit(limit); // Busca os livros correspondentes ao filtro e à página atual
+    const livros = await Livro.find(filter).skip(skip).limit(limit);
 
-    res.json({ livros, totalPages }); // Retorna os livros e o número total de páginas como resposta em formato JSON
+    res.json({ livros, totalPages });
   } catch (error) {
     console.error('Erro ao buscar os livros:', error);
     res.status(500).json({ message: 'Erro ao buscar os livros' });
@@ -509,7 +619,6 @@ app.get('/livros/:id', async (req, res) => {
   }
 });
 
-
 // Rota para obter estatísticas das vendas dentro de um período de datas
 app.post('/relatorio-vendas', async (req, res) => {
   try {
@@ -555,7 +664,6 @@ app.post('/relatorio-vendas', async (req, res) => {
     res.status(500).json({ error: 'Erro ao gerar o relatório de vendas' });
   }
 });
-
 
 app.post('/relatorio-livros-vendidos', async (req, res) => {
   try {
@@ -692,7 +800,6 @@ app.post('/caixa/abrir', async (req, res) => {
   }
 });
 
-  
 app.post('/caixa/fechar', async (req, res) => {
   const { nomeFechamento, valorFechamento, credito, debito, pix, outros } = req.body;
 
@@ -777,10 +884,6 @@ app.post('/caixa/fechar', async (req, res) => {
   }
 });
 
-
-
-
-
 app.post('/caixa/adicionar', async (req, res) => {
   const { valor, justificativa } = req.body;
 
@@ -846,7 +949,6 @@ app.post('/caixa/remover', async (req, res) => {
   }
 });
 
-
 app.get('/caixa', async (req, res) => {
   const { data } = req.query;
   console.log(data);
@@ -873,11 +975,29 @@ app.get('/caixa', async (req, res) => {
   }
 });
 
+// Rota para servir imagens
+app.get('/imagem/:nome', (req, res) => {
+  const nomeArquivo = req.params.nome;
+  const caminhoImagem = path.join(imagesDir, nomeArquivo);
+  
+  // Verifica se o arquivo existe
+  if (fs.existsSync(caminhoImagem)) {
+    res.sendFile(caminhoImagem);
+  } else {
+    res.status(404).json({ error: 'Imagem não encontrada' });
+  }
+});
 
-// Criar servidor HTTPS
-const httpsServer = https.createServer(credentials, app);
+app.get('/categorias', async (req, res) => {
+  try {
+    const categorias = await Livro.distinct('Categoria');
+    res.json(categorias.filter(Boolean)); // Remove categorias null/undefined
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar categorias' });
+  }
+});
 
 // Iniciar o servidor
-httpsServer.listen(PORT, () => {
-  console.log(`Servidor HTTPS rodando em https://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

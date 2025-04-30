@@ -28,64 +28,128 @@ const Financeiro = () => {
     setDate(e.target.value);
   };
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
-    <div className="financeiro-container">
+    <div>
       <h2>Financeiro</h2>
 
       {message && <div className="server-message">{message}</div>}
 
       <div className="cash-display">
         <h3>Exibir Caixa</h3>
-        <label htmlFor="date">Data:</label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          value={date}
-          onChange={handleDateChange}
-        />
-        <button onClick={() => fetchCashData(date)}>Ver Caixa</button>
-
-        <div className="cash-info">
-          {cashData.length > 0 ? (
-            cashData.map((caixa, index) => (
-              <div key={index} className="cash-item">
-                <h4>{caixa.dataFechamento ? 'Caixa Fechado' : 'Caixa Aberto'}</h4>
-                <p><strong>Data:</strong> {new Date(caixa.data).toLocaleDateString()}</p>
-                <p><strong>Nome Abertura:</strong> {caixa.nomeAbertura}</p>
-                <p><strong>Fundo de Caixa:</strong> R$ {caixa.fundoCaixa}</p>
-
-                <div className="section">
-                  <h5>Vendas Registradas</h5>
-                  <p><strong>Dinheiro:</strong> R$ {caixa.vendasDinheiro}</p>
-                  <p><strong>Crédito:</strong> R$ {caixa.vendasCredito}</p>
-                  <p><strong>Débito:</strong> R$ {caixa.vendasDebito}</p>
-                  <p><strong>Pix:</strong> R$ {caixa.vendasPix}</p>
-                  <p><strong>Outros:</strong> R$ {caixa.vendasOutros}</p>
-                </div>
-
-                <div className="section">
-                  <h5>Valores Declarados</h5>
-                  <p><strong>Crédito:</strong> R$ {caixa.credito}</p>
-                  <p><strong>Débito:</strong> R$ {caixa.debito}</p>
-                  <p><strong>Pix:</strong> R$ {caixa.pix}</p>
-                  <p><strong>Outros:</strong> R$ {caixa.outros}</p>
-                </div>
-
-                <div className="section">
-                  <h5>Diferenças</h5>
-                  <p><strong>Diferença Crédito:</strong> R$ {caixa.diferencaCredito}</p>
-                  <p><strong>Diferença Débito:</strong> R$ {caixa.diferencaDebito}</p>
-                  <p><strong>Diferença Dinheiro:</strong> R$ {caixa.diferencaDinheiro}</p>
-                  <p><strong>Diferença Pix:</strong> R$ {caixa.diferencaPix}</p>
-                  <p><strong>Diferença Outros:</strong> R$ {caixa.diferencaOutros}</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>Nenhum registro de caixa encontrado para a data selecionada.</p>
-          )}
+        <div className="date-controls">
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value={date}
+            onChange={handleDateChange}
+          />
+          <button onClick={() => fetchCashData(date)}>Ver Caixa</button>
         </div>
+
+        {cashData.length > 0 ? (
+          <table className="cash-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Responsável</th>
+                <th>Fundo de Caixa</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cashData.map((caixa, index) => (
+                <React.Fragment key={index}>
+                  <tr>
+                    <td>
+                      <span className={`status-badge ${caixa.dataFechamento ? 'status-closed' : 'status-open'}`}>
+                        {caixa.dataFechamento ? 'Fechado' : 'Aberto'}
+                      </span>
+                    </td>
+                    <td>{new Date(caixa.data).toLocaleDateString()}</td>
+                    <td>{caixa.nomeAbertura}</td>
+                    <td>{formatCurrency(caixa.fundoCaixa)}</td>
+                  </tr>
+                  
+                  <tr className="section-title">
+                    <td colSpan="4">Vendas Registradas</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="4">
+                      <table className="cash-table">
+                        <tbody>
+                          <tr>
+                            <td>Dinheiro: {formatCurrency(caixa.vendasDinheiro)}</td>
+                            <td>Crédito: {formatCurrency(caixa.vendasCredito)}</td>
+                            <td>Débito: {formatCurrency(caixa.vendasDebito)}</td>
+                            <td>Pix: {formatCurrency(caixa.vendasPix)}</td>
+                            <td>Outros: {formatCurrency(caixa.vendasOutros)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr className="section-title">
+                    <td colSpan="4">Valores Declarados</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="4">
+                      <table className="cash-table">
+                        <tbody>
+                          <tr>
+                            <td>Crédito: {formatCurrency(caixa.credito)}</td>
+                            <td>Débito: {formatCurrency(caixa.debito)}</td>
+                            <td>Pix: {formatCurrency(caixa.pix)}</td>
+                            <td>Outros: {formatCurrency(caixa.outros)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr className="section-title">
+                    <td colSpan="4">Diferenças</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="4">
+                      <table className="cash-table">
+                        <tbody>
+                          <tr>
+                            <td className={caixa.diferencaCredito >= 0 ? 'value-positive' : 'value-negative'}>
+                              Crédito: {formatCurrency(caixa.diferencaCredito)}
+                            </td>
+                            <td className={caixa.diferencaDebito >= 0 ? 'value-positive' : 'value-negative'}>
+                              Débito: {formatCurrency(caixa.diferencaDebito)}
+                            </td>
+                            <td className={caixa.diferencaDinheiro >= 0 ? 'value-positive' : 'value-negative'}>
+                              Dinheiro: {formatCurrency(caixa.diferencaDinheiro)}
+                            </td>
+                            <td className={caixa.diferencaPix >= 0 ? 'value-positive' : 'value-negative'}>
+                              Pix: {formatCurrency(caixa.diferencaPix)}
+                            </td>
+                            <td className={caixa.diferencaOutros >= 0 ? 'value-positive' : 'value-negative'}>
+                              Outros: {formatCurrency(caixa.diferencaOutros)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>Nenhum registro de caixa encontrado para a data selecionada.</p>
+        )}
       </div>
     </div>
   );

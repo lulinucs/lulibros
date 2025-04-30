@@ -18,6 +18,7 @@ const ListarClientes = () => {
     estado: ''
   });
   const [buscaNome, setBuscaNome] = useState('');
+  const [modoEdicao, setModoEdicao] = useState(false);
 
   useEffect(() => {
     const fetchClientes = async () => {
@@ -37,6 +38,7 @@ const ListarClientes = () => {
   const handleEditarCliente = (cliente) => {
     setClienteSelecionado(cliente);
     setClienteEditado(cliente);
+    setModoEdicao(false);
   };
 
   const handleInputChange = (event) => {
@@ -73,45 +75,72 @@ const ListarClientes = () => {
   };
 
   return (
-    <div className="listar-clientes-container">
-      <h2 className="listar-clientes-title">Lista de Clientes</h2>
-      <div className="busca-container">
+    <div className="lc-container">
+      <h2 className="lc-title">Clientes</h2>
+      <div className="lc-busca-container">
         <input
           type="text"
           placeholder="Buscar por nome"
           value={buscaNome}
           onChange={(e) => setBuscaNome(e.target.value)}
+          className="lc-input"
         />
       </div>
-      <div className="clientes-container">
-      {clientes
-            .filter(cliente => cliente.nome && cliente.nome.toLowerCase().includes(buscaNome.toLowerCase()))
-            .map((cliente) => (
-                <div key={cliente._id} className="cliente-card" onClick={() => handleEditarCliente(cliente)}>
-                <p className="cliente-nome">{cliente.nome}</p>
-                <p className="cliente-nome">{cliente.email}</p>
-                </div>
-            ))}
+      <div className="lc-clientes-lista">
+        {clientes
+          .filter(cliente => cliente.nome && cliente.nome.toLowerCase().includes(buscaNome.toLowerCase()))
+          .map((cliente) => (
+            <div key={cliente._id} className="lc-card" onClick={() => handleEditarCliente(cliente)}>
+              <div className="lc-avatar">
+                {cliente.nome ? cliente.nome.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() : '?'}
+              </div>
+              <div className="lc-card-info">
+                <div className="lc-card-nome">{cliente.nome}</div>
+                <div className="lc-card-email">{cliente.email}</div>
+              </div>
+            </div>
+          ))}
       </div>
 
-      {/* Modal de Edição */}
+      {/* Modal de Exibição/Edição */}
       {clienteSelecionado && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={() => setClienteSelecionado(null)}>&times;</span>
-            <h2>Editar Cliente</h2>
-            <input type="text" name="nome" value={clienteEditado.nome} onChange={handleInputChange} placeholder="Nome" />
-            <input type="text" name="cpf" value={clienteEditado.cpf} onChange={handleInputChange} placeholder="CPF" />
-            <input type="email" name="email" value={clienteEditado.email} onChange={handleInputChange} placeholder="Email" />
-            <input type="text" name="telefone" value={clienteEditado.telefone} onChange={handleInputChange} placeholder="Telefone" />
-            <input type="text" name="cep" value={clienteEditado.cep} onChange={handleInputChange} placeholder="CEP" />
-            <input type="text" name="endereco" value={clienteEditado.endereco} onChange={handleInputChange} placeholder="Endereço" />
-            <input type="text" name="bairro" value={clienteEditado.bairro} onChange={handleInputChange} placeholder="Bairro" />
-            <input type="text" name="cidade" value={clienteEditado.cidade} onChange={handleInputChange} placeholder="Cidade" />
-            <input type="text" name="estado" value={clienteEditado.estado} onChange={handleInputChange} placeholder="Estado" />
-            <br />
-            <button className='salvar-button' onClick={handleSalvarEdicao}>Salvar</button>
-            <button className='cancelar-button'onClick={handleCancelarEdicao}>Cancelar</button>
+        <div className="lc-modal-bg">
+          <div className="lc-modal">
+            <span className="lc-modal-close" onClick={() => setClienteSelecionado(null)}>&times;</span>
+            <h2 className="lc-modal-title">{modoEdicao ? 'Editar Cliente' : 'Dados do Cliente'}</h2>
+            {modoEdicao ? (
+              <>
+                <input type="text" name="nome" value={clienteEditado.nome} onChange={handleInputChange} placeholder="Nome" className="lc-input" />
+                <input type="text" name="cpf" value={clienteEditado.cpf} onChange={handleInputChange} placeholder="CPF" className="lc-input" />
+                <input type="text" name="email" value={clienteEditado.email} onChange={handleInputChange} placeholder="Email" className="lc-input" />
+                <input type="text" name="telefone" value={clienteEditado.telefone} onChange={handleInputChange} placeholder="Telefone" className="lc-input" />
+                <input type="text" name="cep" value={clienteEditado.cep} onChange={handleInputChange} placeholder="CEP" className="lc-input" />
+                <input type="text" name="endereco" value={clienteEditado.endereco} onChange={handleInputChange} placeholder="Endereço" className="lc-input" />
+                <input type="text" name="bairro" value={clienteEditado.bairro} onChange={handleInputChange} placeholder="Bairro" className="lc-input" />
+                <input type="text" name="cidade" value={clienteEditado.cidade} onChange={handleInputChange} placeholder="Cidade" className="lc-input" />
+                <input type="text" name="estado" value={clienteEditado.estado} onChange={handleInputChange} placeholder="Estado" className="lc-input" />
+                <div className="lc-modal-botoes">
+                  <button className='lc-btn lc-btn-salvar' onClick={handleSalvarEdicao}>Salvar</button>
+                  <button className='lc-btn lc-btn-cancelar' onClick={() => { setModoEdicao(false); setClienteEditado(clienteSelecionado); }}>Cancelar</button>
+                </div>
+              </>
+            ) : (
+              <div className="lc-modal-view">
+                <div className="lc-modal-view-row"><span>Nome:</span> <span>{clienteSelecionado.nome}</span></div>
+                <div className="lc-modal-view-row"><span>CPF:</span> <span>{clienteSelecionado.cpf}</span></div>
+                <div className="lc-modal-view-row"><span>Email:</span> <span className="lc-modal-view-email">{clienteSelecionado.email}</span></div>
+                <div className="lc-modal-view-row"><span>Telefone:</span> <span>{clienteSelecionado.telefone}</span></div>
+                <div className="lc-modal-view-row"><span>CEP:</span> <span>{clienteSelecionado.cep}</span></div>
+                <div className="lc-modal-view-row"><span>Endereço:</span> <span>{clienteSelecionado.endereco}</span></div>
+                <div className="lc-modal-view-row"><span>Bairro:</span> <span>{clienteSelecionado.bairro}</span></div>
+                <div className="lc-modal-view-row"><span>Cidade:</span> <span>{clienteSelecionado.cidade}</span></div>
+                <div className="lc-modal-view-row"><span>Estado:</span> <span>{clienteSelecionado.estado}</span></div>
+                <div className="lc-modal-botoes">
+                  <button className='lc-btn lc-btn-salvar' onClick={() => setModoEdicao(true)}>Editar</button>
+                  <button className='lc-btn lc-btn-cancelar' onClick={() => setClienteSelecionado(null)}>Fechar</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

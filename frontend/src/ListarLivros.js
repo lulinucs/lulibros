@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiUrl from './config';
 import axios from 'axios';
 import './ListarLivros.css';
+import { FaBook } from 'react-icons/fa';
 
 const LivrosComponent = () => {
   const [livros, setLivros] = useState([]);
@@ -15,12 +16,37 @@ const LivrosComponent = () => {
   const [editedEstoque, setEditedEstoque] = useState(0);
   const [editedEstoqueSaldo, setEditedEstoqueSaldo] = useState(0);
   const [editedPrecoSaldo, setEditedPrecoSaldo] = useState(0);
-  const [filtro, setFiltro] = useState('Todos'); // Estado do filtro
+  const [filtro, setFiltro] = useState('Todos');
+  const [categoriaFiltro, setCategoriaFiltro] = useState('Todas');
+  const [categorias, setCategorias] = useState([]);
+  const [imageLoadErrors, setImageLoadErrors] = useState({});
+
+  // Função para buscar todas as categorias únicas
+  const fetchTodasCategorias = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/categorias`);
+      const categoriasOrdenadas = response.data.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      setCategorias(categoriasOrdenadas);
+    } catch (error) {
+      console.error('Erro ao buscar categorias:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchLivros = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/livros?page=${currentPage}&q=${searchTerm}`);
+        // Construir a URL com todos os parâmetros de filtro
+        let url = `${apiUrl}/livros?page=${currentPage}`;
+        
+        if (searchTerm) {
+          url += `&q=${searchTerm}`;
+        }
+        
+        if (categoriaFiltro !== 'Todas') {
+          url += `&categoria=${encodeURIComponent(categoriaFiltro)}`;
+        }
+
+        const response = await axios.get(url);
         setLivros(response.data.livros);
         setTotalPages(response.data.totalPages);
       } catch (error) {
@@ -29,17 +55,33 @@ const LivrosComponent = () => {
     };
 
     fetchLivros();
-  }, [apiUrl, currentPage, searchTerm]);
+  }, [currentPage, searchTerm, categoriaFiltro]);
+
+  // Efeito separado para buscar categorias apenas uma vez na montagem
+  useEffect(() => {
+    fetchTodasCategorias();
+  }, []);
+
+  const handleImageError = (isbn) => {
+    setImageLoadErrors(prev => ({ ...prev, [isbn]: true }));
+  };
 
   const handleFilterChange = (event) => {
     setFiltro(event.target.value);
+    setCurrentPage(1); // Reset para primeira página
+  };
+
+  const handleCategoriaChange = (event) => {
+    setCategoriaFiltro(event.target.value);
+    setCurrentPage(1); // Reset para primeira página
   };
 
   const filterLivros = () => {
     return livros.filter((livro) => {
+      // Agora só precisamos filtrar por disponibilidade, já que categoria vem filtrada da API
       if (filtro === 'Com Saldo') return livro['Estoque Saldo'] > 0;
       if (filtro === 'Novos') return livro.Estoque > 0;
-      return true; // 'Todos'
+      return true;
     });
   };
 
@@ -57,6 +99,7 @@ const LivrosComponent = () => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+    setCurrentPage(1); // Reset para primeira página
   };
 
   const openModal = (livro) => {
@@ -74,26 +117,6 @@ const LivrosComponent = () => {
     setEditMode(false);
   };
 
-  const toggleEditMode = () => {
-    setEditMode(!editMode);
-  };
-
-  const handleValueChange = (event) => {
-    setEditedValue(parseFloat(event.target.value));
-  };
-
-  const handleEstoqueChange = (event) => {
-    setEditedEstoque(parseInt(event.target.value));
-  };
-
-  const handleEstoqueSaldoChange = (event) => {
-    setEditedEstoqueSaldo(parseInt(event.target.value));
-  };
-
-  const handlePrecoSaldoChange = (event) => {
-    setEditedPrecoSaldo(parseFloat(event.target.value));
-  };
-
   const handleSaveChanges = async () => {
     try {
       await axios.put(`${apiUrl}/livros/${selectedLivro._id}`, {
@@ -102,6 +125,7 @@ const LivrosComponent = () => {
         EstoqueSaldo: editedEstoqueSaldo,
         PrecoSaldo: editedPrecoSaldo,
       });
+      
       const updatedLivros = livros.map((livro) => {
         if (livro._id === selectedLivro._id) {
           return {
@@ -114,96 +138,170 @@ const LivrosComponent = () => {
         }
         return livro;
       });
+      
       setLivros(updatedLivros);
       closeModal();
-      alert('Livro atualizado com sucesso!'); // Notificação de sucesso
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
-      alert('Erro ao atualizar livro. Por favor, tente novamente.'); // Notificação de erro
+      alert('Erro ao atualizar livro. Por favor, tente novamente.');
     }
   };
 
   return (
     <div className="listar-livros-container">
-      <h1 className="listar-livros-title">Lista de Livros</h1>
+      <h1 className="listar-livros-title">Catálogo de Livros</h1>
+      
       <div className="busca-container">
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
-          placeholder="Pesquisar por título, autor ou editora"
+          placeholder="Pesquisar por título, autor ou editora..."
         />
       </div>
-      <div className="filter-container">
-        <label htmlFor="filtro">Filtrar por:</label>
-        <select id="filtro" value={filtro} onChange={handleFilterChange}>
-          <option value="Todos">Todos</option>
-          <option value="Com Saldo">Com Saldo</option>
-          <option value="Novos">Novos</option>
-        </select>
+
+      <div className="filtros-container">
+        <div className="filter-group">
+          <label htmlFor="filtro">Disponibilidade:</label>
+          <select id="filtro" value={filtro} onChange={handleFilterChange}>
+            <option value="Todos">Todos os Livros</option>
+            <option value="Com Saldo">Livros em Saldo</option>
+            <option value="Novos">Livros Novos</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="categoria">Categoria:</label>
+          <select id="categoria" value={categoriaFiltro} onChange={handleCategoriaChange}>
+            <option value="Todas">Todas as Categorias</option>
+            {categorias.map(categoria => (
+              <option key={categoria} value={categoria}>{categoria}</option>
+            ))}
+          </select>
+        </div>
       </div>
+
       <div className="livros-grid">
-        {filterLivros().map((livro, index) => (
-          <div key={index} className="livro-card" onClick={() => openModal(livro)}>
+        {filterLivros().map((livro) => (
+          <div key={livro._id} className="livro-card" onClick={() => openModal(livro)}>
+            <div className={`listar-livros-capa ${imageLoadErrors[livro.ISBN] ? 'sem-imagem' : ''}`}>
+              {!imageLoadErrors[livro.ISBN] ? (
+                <img
+                  src={`${apiUrl}/imagem/${livro.ISBN}.jpg`}
+                  alt={`Capa do livro ${livro.Título}`}
+                  onError={() => handleImageError(livro.ISBN)}
+                />
+              ) : (
+                <div className="sem-imagem">
+                  <FaBook />
+                </div>
+              )}
+            </div>
             <div className="livro-info">
-              <p><strong>ISBN:</strong> {livro.ISBN}</p>
-              <p><strong>Título:</strong> {livro.Título}</p>
-              <p><strong>Editora:</strong> {livro.Editora}</p>
-              <p><strong>Autor:</strong> {livro.Autor}</p>
+              <p className="titulo">{livro.Título}</p>
+              <p className="autor">{livro.Autor}</p>
+              <p>{livro.Editora}</p>
+              {livro.Categoria && <p className="categoria">{livro.Categoria}</p>}
               <div className="disponibilidade-table">
-                <p><strong>DISPONIBILIDADE</strong></p>
-                <div className="disponibilidade-row">
-                  <span>Novo: {livro.Estoque} | Preço: R$ {livro['Valor Feira'].toFixed(2)}</span>
-                </div>
-                <div className="disponibilidade-row">
-                  <span>Saldo: {livro['Estoque Saldo']} | Preço: R$ {livro['Preço Saldo'].toFixed(2)}</span>
-                </div>
+                {livro.Estoque > 0 && (
+                  <div className="disponibilidade-row">
+                    <span>Novo:</span>
+                    <span>R$ {livro['Valor Feira'].toFixed(2)}</span>
+                  </div>
+                )}
+                {livro['Estoque Saldo'] > 0 && (
+                  <div className="disponibilidade-row">
+                    <span>Saldo:</span>
+                    <span>R$ {livro['Preço Saldo'].toFixed(2)}</span>
+                  </div>
+                )}
+                {livro.Estoque === 0 && livro['Estoque Saldo'] === 0 && (
+                  <div className="disponibilidade-row indisponivel">
+                    <span>Indisponível</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
+
       <div className="pagination">
-        <button onClick={handlePrevPage} disabled={currentPage === 1}>Anterior</button>
+        <button onClick={handlePrevPage} disabled={currentPage === 1}>
+          Anterior
+        </button>
         <span>Página {currentPage} de {totalPages}</span>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>Próxima</button>
+        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+          Próxima
+        </button>
       </div>
+
       {modalOpen && (
-        <div className="modal">
-          <div className="modal-content">
+        <div className="modal" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <span className="close" onClick={closeModal}>&times;</span>
-            <h2>Detalhes do Livro</h2>
             {selectedLivro && (
-              <div>
-                <p><strong>ISBN:</strong> {selectedLivro.ISBN}</p>
-                <p><strong>Título:</strong> {selectedLivro.Título}</p>
-                <p><strong>Editora:</strong> {selectedLivro.Editora}</p>
-                <p><strong>Autor:</strong> {selectedLivro.Autor}</p>
-                <div className="disponibilidade-table">
-                  <p><strong>DISPONIBILIDADE</strong></p>
-                  {editMode ? (
-                    <>
-                      <div className="disponibilidade-row">
-                        <span>Novo: <input type="number" value={editedEstoque} onChange={handleEstoqueChange} /> | Preço: <input type="number" value={editedValue} onChange={handleValueChange} /></span>
-                      </div>
-                      <div className="disponibilidade-row">
-                        <span>Saldo: <input type="number" value={editedEstoqueSaldo} onChange={handleEstoqueSaldoChange} /> | Preço: <input type="number" value={editedPrecoSaldo} onChange={handlePrecoSaldoChange} /></span>
-                      </div>
-                    </>
+              <div className="modal-grid">
+                <div className="modal-capa">
+                  {!imageLoadErrors[selectedLivro.ISBN] ? (
+                    <img
+                      src={`${apiUrl}/imagem/${selectedLivro.ISBN}.jpg`}
+                      alt={`Capa do livro ${selectedLivro.Título}`}
+                      onError={() => handleImageError(selectedLivro.ISBN)}
+                    />
                   ) : (
-                    <>
-                      <div className="disponibilidade-row">
-                        <span>Novo: {selectedLivro.Estoque} | Preço: R$ {selectedLivro['Valor Feira'].toFixed(2)}</span>
-                      </div>
-                      <div className="disponibilidade-row">
-                        <span>Saldo: {selectedLivro['Estoque Saldo']} | Preço: R$ {selectedLivro['Preço Saldo'].toFixed(2)}</span>
-                      </div>
-                    </>
+                    <div className="sem-imagem">
+                      <FaBook />
+                    </div>
                   )}
+                </div>
+                <div className="modal-info">
+                  <h2>{selectedLivro.Título}</h2>
+                  <p><strong>Autor:</strong> {selectedLivro.Autor}</p>
+                  <p><strong>Editora:</strong> {selectedLivro.Editora}</p>
+                  {selectedLivro.Categoria && (
+                    <p><strong>Categoria:</strong> {selectedLivro.Categoria}</p>
+                  )}
+                  <p><strong>ISBN:</strong> {selectedLivro.ISBN}</p>
+                  
+                  <div className="disponibilidade-table">
+                    <h3>Disponibilidade</h3>
+                    {editMode ? (
+                      <>
+                        <div className="disponibilidade-row">
+                          <span>Novo:</span>
+                          <div>
+                            <input type="number" value={editedEstoque} onChange={e => setEditedEstoque(parseInt(e.target.value))} min="0" />
+                            <input type="number" value={editedValue} onChange={e => setEditedValue(parseFloat(e.target.value))} min="0" step="0.01" />
+                          </div>
+                        </div>
+                        <div className="disponibilidade-row">
+                          <span>Saldo:</span>
+                          <div>
+                            <input type="number" value={editedEstoqueSaldo} onChange={e => setEditedEstoqueSaldo(parseInt(e.target.value))} min="0" />
+                            <input type="number" value={editedPrecoSaldo} onChange={e => setEditedPrecoSaldo(parseFloat(e.target.value))} min="0" step="0.01" />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="disponibilidade-row">
+                          <span>Novo:</span>
+                          <span>{selectedLivro.Estoque} unid. | R$ {selectedLivro['Valor Feira'].toFixed(2)}</span>
+                        </div>
+                        <div className="disponibilidade-row">
+                          <span>Saldo:</span>
+                          <span>{selectedLivro['Estoque Saldo']} unid. | R$ {selectedLivro['Preço Saldo'].toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <button onClick={editMode ? handleSaveChanges : () => setEditMode(true)}>
+                    {editMode ? 'Salvar Alterações' : 'Editar'}
+                  </button>
                 </div>
               </div>
             )}
-            <button onClick={editMode ? handleSaveChanges : toggleEditMode}>{editMode ? 'Salvar' : 'Editar'}</button>
           </div>
         </div>
       )}

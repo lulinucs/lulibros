@@ -4,7 +4,15 @@ import apiUrl from './config'; // Importe a variável apiUrl
 import './Financeiro.css'; // Adicione o arquivo de estilo correspondente
 import ExibirCaixa from './ExibirCaixa.js'
 
+const abas = [
+  { key: 'abrir', label: 'Abrir Caixa' },
+  { key: 'fechar', label: 'Fechar Caixa' },
+  { key: 'movimentar', label: 'Movimentar Caixa' },
+  { key: 'exibir', label: 'Exibir Caixa' },
+];
+
 const Financeiro = () => {
+  const [abaAtiva, setAbaAtiva] = useState('abrir');
   const [openCashForm, setOpenCashForm] = useState({ nome: '', fundo: '' });
   const [closeCashForm, setCloseCashForm] = useState({
     nome: '',
@@ -88,138 +96,169 @@ const Financeiro = () => {
   };
 
   return (
-    <div className="financeiro-container">
-      <h2>Financeiro</h2>
-      
-      {message && <div className="server-message">{message}</div>} {/* Exibir mensagem do servidor */}
+    <div className="fin-container">
+      <h2 className="fin-title">Financeiro</h2>
+      <div className="fin-abas">
+        {abas.map((aba) => (
+          <button
+            key={aba.key}
+            className={`fin-aba-btn${abaAtiva === aba.key ? ' fin-aba-ativa' : ''}`}
+            onClick={() => setAbaAtiva(aba.key)}
+            type="button"
+          >
+            {aba.label}
+          </button>
+        ))}
+      </div>
+      {message && <div className="fin-server-message">{message}</div>} {/* Exibir mensagem do servidor */}
 
-      <form onSubmit={handleOpenCashSubmit}>
-        <h3>Abrir Caixa</h3>
-        <div className="form-item">
-          <label htmlFor="nome">Nome:</label>
-          <input
-            type="text"
-            id="nome"
-            name="nome"
-            value={openCashForm.nome}
-            onChange={handleOpenCashChange}
-            required
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="fundo">Fundo de Caixa:</label>
-          <input
-            type="number"
-            id="fundo"
-            name="fundo"
-            value={openCashForm.fundo}
-            onChange={handleOpenCashChange}
-            required
-          />
-        </div>
-        <button type="submit">Abrir Caixa</button>
-      </form>
-
-      <form onSubmit={handleCloseCashSubmit}>
-        <h3>Fechar Caixa</h3>
-        <div className="form-item">
-          <label htmlFor="nomeFechamento">Nome:</label>
-          <input
-            type="text"
-            id="nomeFechamento"
-            name="nome"
-            value={closeCashForm.nome}
-            onChange={handleCloseCashChange}
-            required
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="valorCaixa">Valor em Caixa:</label>
-          <input
-            type="number"
-            id="valorCaixa"
-            name="valorCaixa"
-            value={closeCashForm.valorCaixa}
-            onChange={handleCloseCashChange}
-            required
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="credito">Crédito:</label>
-          <input
-            type="number"
-            id="credito"
-            name="credito"
-            value={closeCashForm.credito}
-            onChange={handleCloseCashChange}
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="debito">Débito:</label>
-          <input
-            type="number"
-            id="debito"
-            name="debito"
-            value={closeCashForm.debito}
-            onChange={handleCloseCashChange}
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="pix">Pix:</label>
-          <input
-            type="number"
-            id="pix"
-            name="pix"
-            value={closeCashForm.pix}
-            onChange={handleCloseCashChange}
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="outros">Outros:</label>
-          <input
-            type="number"
-            id="outros"
-            name="outros"
-            value={closeCashForm.outros}
-            onChange={handleCloseCashChange}
-          />
-        </div>
-        <button type="submit">Fechar Caixa</button>
-      </form>
-
-      <form onSubmit={(e) => handleMovementSubmit(e, 'add')}>
-        <h3>Movimentar Caixa</h3>
-        <div className="form-item">
-          <label htmlFor="valorMovimentacao">Valor:</label>
-          <input
-            type="number"
-            id="valorMovimentacao"
-            name="valor"
-            value={movementForm.valor}
-            onChange={handleMovementChange}
-            required
-          />
-        </div>
-        <div className="form-item">
-          <label htmlFor="justificativa">Justificativa:</label>
-          <input
-            type="text"
-            id="justificativa"
-            name="justificativa"
-            value={movementForm.justificativa}
-            onChange={handleMovementChange}
-            required
-          />
-        </div>
-        <button type="submit">Adicionar</button>
-        <button type="button" onClick={(e) => handleMovementSubmit(e, 'remove')}>
-          Remover
-        </button>
-      </form>
-
-      <ExibirCaixa />
+      <div className="fin-conteudo-aba">
+        {abaAtiva === 'abrir' && (
+          <form className="fin-form" onSubmit={handleOpenCashSubmit} autoComplete="off">
+            <h3 className="fin-form-title">Abrir Caixa</h3>
+            <div className="fin-form-item">
+              <label htmlFor="nome">Nome:</label>
+              <input
+                type="text"
+                id="nome"
+                name="nome"
+                value={openCashForm.nome}
+                onChange={handleOpenCashChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="fundo">Fundo de Caixa:</label>
+              <input
+                type="number"
+                id="fundo"
+                name="fundo"
+                value={openCashForm.fundo}
+                onChange={handleOpenCashChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <button type="submit" className="fin-btn fin-btn-abrir">Abrir Caixa</button>
+          </form>
+        )}
+        {abaAtiva === 'fechar' && (
+          <form className="fin-form" onSubmit={handleCloseCashSubmit} autoComplete="off">
+            <h3 className="fin-form-title">Fechar Caixa</h3>
+            <div className="fin-form-item">
+              <label htmlFor="nomeFechamento">Nome:</label>
+              <input
+                type="text"
+                id="nomeFechamento"
+                name="nome"
+                value={closeCashForm.nome}
+                onChange={handleCloseCashChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="valorCaixa">Valor em Caixa:</label>
+              <input
+                type="number"
+                id="valorCaixa"
+                name="valorCaixa"
+                value={closeCashForm.valorCaixa}
+                onChange={handleCloseCashChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="credito">Crédito:</label>
+              <input
+                type="number"
+                id="credito"
+                name="credito"
+                value={closeCashForm.credito}
+                onChange={handleCloseCashChange}
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="debito">Débito:</label>
+              <input
+                type="number"
+                id="debito"
+                name="debito"
+                value={closeCashForm.debito}
+                onChange={handleCloseCashChange}
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="pix">Pix:</label>
+              <input
+                type="number"
+                id="pix"
+                name="pix"
+                value={closeCashForm.pix}
+                onChange={handleCloseCashChange}
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="outros">Outros:</label>
+              <input
+                type="number"
+                id="outros"
+                name="outros"
+                value={closeCashForm.outros}
+                onChange={handleCloseCashChange}
+                className="fin-input"
+              />
+            </div>
+            <button type="submit" className="fin-btn fin-btn-fechar">Fechar Caixa</button>
+          </form>
+        )}
+        {abaAtiva === 'movimentar' && (
+          <form className="fin-form" onSubmit={(e) => handleMovementSubmit(e, 'add')} autoComplete="off">
+            <h3 className="fin-form-title">Movimentar Caixa</h3>
+            <div className="fin-form-item">
+              <label htmlFor="valorMovimentacao">Valor:</label>
+              <input
+                type="number"
+                id="valorMovimentacao"
+                name="valor"
+                value={movementForm.valor}
+                onChange={handleMovementChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-form-item">
+              <label htmlFor="justificativa">Justificativa:</label>
+              <input
+                type="text"
+                id="justificativa"
+                name="justificativa"
+                value={movementForm.justificativa}
+                onChange={handleMovementChange}
+                required
+                className="fin-input"
+              />
+            </div>
+            <div className="fin-mov-btns">
+              <button type="submit" className="fin-btn fin-btn-add">Adicionar</button>
+              <button type="button" className="fin-btn fin-btn-remove" onClick={(e) => handleMovementSubmit(e, 'remove')}>
+                Remover
+              </button>
+            </div>
+          </form>
+        )}
+        {abaAtiva === 'exibir' && (
+          <div className="fin-exibir-caixa">
+            <ExibirCaixa />
+          </div>
+        )}
+      </div>
     </div>
-
   );
 };
 

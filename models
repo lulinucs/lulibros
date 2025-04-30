@@ -6,6 +6,7 @@ const livroSchema = new mongoose.Schema({
   Editora: String,
   Título: String,
   Autor: String,
+  Categoria: String, // Campo opcional
   Estoque: Number,
   Valor: Number,
   'Valor Feira': Number,
